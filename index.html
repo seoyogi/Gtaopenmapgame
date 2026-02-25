@@ -1,4 +1,4 @@
-、<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
@@ -101,8 +101,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:Ari
       <div class="btn" id="bbrk">■</div>
     </div>
     <div id="ra">
-      <div class="btn gbtn" id="bd">D</div>
-      <div class="btn gbtn" id="br2">R</div>
+      <div class="btn gbtn" id="bd">R</div>
+      <div class="btn gbtn" id="br2">D</div>
       <div class="btn gbtn" id="bn">N</div>
     </div>
   </div>
@@ -251,13 +251,22 @@ function initGame(){
   }
 
   // ── ライト ──
+  // ambientを強くしてGLBの金色塗装が暗くならないようにする
+  app.scene.ambientLight=new pc.Color(.55,.52,.48); // 暖色系アンビエント
+  app.scene.exposure=1.2;
+
   const sun=new pc.Entity('sun');
-  sun.addComponent('light',{type:'directional',color:new pc.Color(1,.95,.85),intensity:1.6,
+  sun.addComponent('light',{type:'directional',color:new pc.Color(1,.95,.85),intensity:1.8,
     castShadows:true,shadowBias:.2,shadowResolution:1024,shadowRange:120});
-  sun.setEulerAngles(45,130,0);app.root.addChild(sun);
+  sun.setEulerAngles(40,130,0);app.root.addChild(sun);
+  // 補助光（正面から）
   const fill=new pc.Entity('fill');
-  fill.addComponent('light',{type:'directional',color:new pc.Color(.3,.5,.72),intensity:.42});
-  fill.setEulerAngles(-30,0,0);app.root.addChild(fill);
+  fill.addComponent('light',{type:'directional',color:new pc.Color(.6,.58,.5),intensity:.7});
+  fill.setEulerAngles(-20,0,0);app.root.addChild(fill);
+  // 底面からの反射光
+  const bounce=new pc.Entity('bounce');
+  bounce.addComponent('light',{type:'directional',color:new pc.Color(.4,.45,.5),intensity:.4});
+  bounce.setEulerAngles(80,0,0);app.root.addChild(bounce);
 
   // ── カメラ ──
   const camE=new pc.Entity('cam');
@@ -269,6 +278,27 @@ function initGame(){
   // =====================================================================
   const CSIZ=200,RDIST=2;
   const chunkMap=new Map();
+  // ビル当たり判定用AABB一覧 {minX,maxX,minZ,maxZ,chunkKey}
+  const buildingBoxes=[];
+
+  // 地形法線を取得（有限差分）
+  function getTerrainNormal(x,z){
+    const eps=1.0;
+    const hL=getH(x-eps,z),hR=getH(x+eps,z);
+    const hD=getH(x,z-eps),hU=getH(x,z+eps);
+    // 傾きベクトル → 法線
+    const nx=-(hR-hL)/(2*eps);
+    const nz=-(hU-hD)/(2*eps);
+    const len=Math.sqrt(nx*nx+1+nz*nz);
+    return{x:nx/len,y:1/len,z:nz/len};
+  }
+
+  // 法線からオイラー角（ピッチ・ロール）を計算
+  function normalToEuler(nx,ny,nz){
+    const pitch=Math.atan2(-nz,ny)*180/Math.PI;
+    const roll =Math.atan2( nx,ny)*180/Math.PI;
+    return{pitch,roll};
+  }
 
   function createChunk(cx,cz){
     const k=cx+','+cz;if(chunkMap.has(k))return;
@@ -325,15 +355,39 @@ function initGame(){
       if(Math.abs(bz-(wz+CSIZ/2))<22||Math.abs(bx-(wx+CSIZ/2))<22)continue;
       const bw=12+rng(bi*7+3)*20,bd=12+rng(bi*7+4)*20,bh=16+rng(bi*7+5)*85,gh=getH(bx,bz);
       const wm=mat(rng(bi*7+6)>.45?TX.wallB:TX.wallA,1,bh/18);
+      const yawDeg=rng(bi*7+7)*12-6;
+
+      // 地形法線から傾きを計算
+      const norm=getTerrainNormal(bx,bz);
+      const tilt=normalToEuler(norm.x,norm.y,norm.z);
+
       const be=new pc.Entity();be.addComponent('render',{type:'box',material:wm});
-      be.setLocalScale(bw,bh,bd);be.setPosition(bx,gh+bh/2,bz);be.setEulerAngles(0,rng(bi*7+7)*12-6,0);
+      be.setLocalScale(bw,bh,bd);
+      be.setPosition(bx,gh+bh/2,bz);
+      be.setEulerAngles(tilt.pitch,yawDeg,tilt.roll);
       app.root.addChild(be);ents.push(be);
+
       const rf=new pc.Entity();rf.addComponent('render',{type:'box',material:mat(TX.roof)});
-      rf.setLocalScale(bw,.4,bd);rf.setPosition(bx,gh+bh+.2,bz);app.root.addChild(rf);ents.push(rf);
+      rf.setLocalScale(bw,.4,bd);
+      rf.setPosition(bx,gh+bh+.2,bz);
+      rf.setEulerAngles(tilt.pitch,yawDeg,tilt.roll);
+      app.root.addChild(rf);ents.push(rf);
+
+      // AABB当たり判定登録（ヨー無視の軸平行ボックス）
+      const hw2=Math.max(bw,bd)/2+0.5;
+      buildingBoxes.push({minX:bx-hw2,maxX:bx+hw2,minZ:bz-hw2,maxZ:bz+hw2,h:gh+bh,key:k});
     }
     chunkMap.set(k,ents);
   }
-  function removeChunk(k){const ents=chunkMap.get(k);if(!ents)return;ents.forEach(e=>e.destroy());chunkMap.delete(k);}
+  function removeChunk(k){
+    const ents=chunkMap.get(k);if(!ents)return;
+    ents.forEach(e=>e.destroy());
+    chunkMap.delete(k);
+    // このチャンクのビルAABBを削除
+    for(let i=buildingBoxes.length-1;i>=0;i--){
+      if(buildingBoxes[i].key===k)buildingBoxes.splice(i,1);
+    }
+  }
 
   // =====================================================================
   //  カー物理
@@ -464,26 +518,7 @@ function initGame(){
   const carRoot=new pc.Entity('carRoot');
   app.root.addChild(carRoot);
 
-  // タイヤ4つ（carRootの外・ワールド空間）
-  const tireMat=mat(TX.tire);
-  const wheelEnts=[];
-  for(let i=0;i<4;i++){
-    const we=new pc.Entity('w'+i);
-    we.addComponent('render',{type:'cylinder',material:tireMat});
-    we.setLocalScale(.44,.3,.44);
-    app.root.addChild(we);
-    wheelEnts.push(we);
-  }
-
   // 車体ビジュアル（GLBまたはプロシージャル）
-  // ── ローカルオフセット（車体基準 x=右, z=前/後）
-  const WOFF=[
-    {x:-1.05,y:-.3,z:-1.3},  // FL
-    {x: 1.05,y:-.3,z:-1.3},  // FR
-    {x:-1.05,y:-.3,z: 1.3},  // RL
-    {x: 1.05,y:-.3,z: 1.3},  // RR
-  ];
-
   function buildFallbackCar(){
     const ctex=tCar(...pCol);
     const bm=new pc.Entity();bm.addComponent('render',{type:'box',material:mat(ctex,1,1)});
@@ -502,26 +537,11 @@ function initGame(){
     });
   }
 
-  // GLBをbase64として埋め込む代わりに、同じディレクトリのCar.glbを相対URLで読む
-  // HTMLと同じフォルダにCar.glbを置けば自動ロード
-  // もしくはGitHub Raw URLを直接指定
-
-  // Car.glbを同階層から読む試み → 失敗したらプロシージャル
-  const GLB_URLS=[
-    'Car.glb',
-    './Car.glb',
-    // GitHubのRaw URL（ユーザーがリポジトリに置いた場合の汎用パターン）
-    // 実際のURLに変えて使う場合はここを書き換え
-  ];
-
+  const GLB_URLS=['Car.glb','./Car.glb'];
   let glbLoaded=false;
 
   function tryLoadGlb(urls,idx=0){
-    if(idx>=urls.length){
-      buildFallbackCar();
-      finishLoading();
-      return;
-    }
+    if(idx>=urls.length){buildFallbackCar();finishLoading();return;}
     const url=urls[idx];
     const asset=new pc.Asset('car','container',{url});
     app.assets.add(asset);
@@ -529,18 +549,13 @@ function initGame(){
       const res=asset.resource;
       if(res&&res.instantiateRenderEntity){
         const glbE=res.instantiateRenderEntity();
-        // GLBはscale=0.01,rotationX=90°が焼き込まれているので
-        // carRootに追加するだけでOK
-        // ただしGLB内のCarノードはすでに補正済みなのでlocalScaleを1にリセット
         glbE.setLocalScale(1,1,1);
         glbE.setLocalPosition(0,0,0);
         glbE.setLocalEulerAngles(0,0,0);
         carRoot.addChild(glbE);
         glbLoaded=true;
         finishLoading();
-      } else {
-        tryLoadGlb(urls,idx+1);
-      }
+      } else tryLoadGlb(urls,idx+1);
     });
     asset.on('error',()=>tryLoadGlb(urls,idx+1));
     app.assets.load(asset);
@@ -553,33 +568,6 @@ function initGame(){
 
   tryLoadGlb(GLB_URLS);
   const carPhys=new CarPhysics(0,5,0);
-
-  // タイヤ位置更新（ワールド空間・carRootの外）
-  function updateWheels(p){
-    const f=p.fwd(),r=p.rgt();
-    // ステアリング（前輪のみ）
-    const sa=p.steer;
-    WOFF.forEach((off,i)=>{
-      // ワールド座標
-      const wx=p.pos.x+r.x*off.x+f.x*off.z;
-      const wy=p.pos.y+off.y;
-      const wz=p.pos.z+r.z*off.x+f.z*off.z;
-      wheelEnts[i].setPosition(wx,wy,wz);
-
-      // 回転：
-      //   cylinder はデフォルトでY軸方向に立っている
-      //   横向きにするには Z軸を90度回転
-      //   車体のヨー方向を加える
-      //   前輪(i<2)はさらにステア角を加える
-      const steerAngle=(i<2)?sa:0;
-      const totalYaw=p.yaw+steerAngle; // ラジアン
-
-      // EulerAngles: X=転がり, Y=ヨー（度）, Z=90（横向き）
-      const rollDeg=p.wheelRot*180/Math.PI;
-      const yawDeg=-totalYaw*180/Math.PI;
-      wheelEnts[i].setEulerAngles(rollDeg, yawDeg, 90);
-    });
-  }
 
   // =====================================================================
   //  NPC
@@ -599,12 +587,6 @@ function initGame(){
       bm.setLocalScale(2,.72,4.5);this.ent.addChild(bm);
       const rm=new pc.Entity();rm.addComponent('render',{type:'box',material:mat(ct,1,1)});
       rm.setLocalScale(1.5,.55,2);rm.setLocalPosition(0,.64,.1);this.ent.addChild(rm);
-      // NPCタイヤ（ワールド）
-      this.wh=[];
-      for(let i=0;i<4;i++){
-        const we=new pc.Entity();we.addComponent('render',{type:'cylinder',material:tireMat});
-        we.setLocalScale(.42,.28,.42);app.root.addChild(we);this.wh.push(we);
-      }
     }
     update(dt){
       const dx=this.wayX-this.phys.pos.x,dz=this.wayZ-this.phys.pos.z;
@@ -616,15 +598,8 @@ function initGame(){
       this.ent.setPosition(this.phys.pos);
       const q=new pc.Quat();q.setFromEulerAngles(this.phys.pitch*57.3,-this.phys.yaw*57.3,-this.phys.roll*57.3);
       this.ent.setRotation(q);
-      // タイヤ
-      const p=this.phys,f=p.fwd(),r=p.rgt();
-      WOFF.forEach((off,i)=>{
-        const wx=p.pos.x+r.x*off.x+f.x*off.z,wy=p.pos.y+off.y,wz=p.pos.z+r.z*off.x+f.z*off.z;
-        this.wh[i].setPosition(wx,wy,wz);
-        this.wh[i].setEulerAngles(p.wheelRot*57.3,-p.yaw*57.3,90);
-      });
     }
-    destroy(){this.ent.destroy();this.wh.forEach(w=>w.destroy());}
+    destroy(){this.ent.destroy();}
   }
 
   function spawnNpc(x,y,z){if(npcList.length>=MAX_NPC)return;npcList.push(new NpcCar(x,y,z));}
@@ -659,11 +634,11 @@ function initGame(){
   function setGear(g){
     inp.gear=g;
     ['bd','br2','bn'].forEach(id=>$(id).classList.remove('act'));
-    $({D:'bd',R:'br2',N:'bn'}[g]).classList.add('act');
+    $({D:'br2',R:'bd',N:'bn'}[g]).classList.add('act');
     $('geardsp').textContent=g;
   }
-  $('bd').addEventListener('click', ()=>setGear('D'));
-  $('br2').addEventListener('click',()=>setGear('R'));
+  $('bd').addEventListener('click', ()=>setGear('R'));
+  $('br2').addEventListener('click',()=>setGear('D'));
   $('bn').addEventListener('click', ()=>setGear('N'));
   setGear('D');
 
@@ -732,14 +707,33 @@ function initGame(){
     // 物理
     const st=carPhys.update(dt,inp);
 
+    // ── ビル当たり判定（AABB押し出し） ──
+    const CAR_R=1.2; // 車の半径（簡易円）
+    for(let i=0;i<buildingBoxes.length;i++){
+      const b=buildingBoxes[i];
+      if(carPhys.pos.x+CAR_R<b.minX||carPhys.pos.x-CAR_R>b.maxX)continue;
+      if(carPhys.pos.z+CAR_R<b.minZ||carPhys.pos.z-CAR_R>b.maxZ)continue;
+      // 衝突：最短軸で押し出す
+      const overlapX=Math.min(carPhys.pos.x+CAR_R-b.minX, b.maxX-carPhys.pos.x+CAR_R);
+      const overlapZ=Math.min(carPhys.pos.z+CAR_R-b.minZ, b.maxZ-carPhys.pos.z+CAR_R);
+      if(overlapX<overlapZ){
+        const dir=carPhys.pos.x<(b.minX+b.maxX)/2?-1:1;
+        carPhys.pos.x+=dir*overlapX;
+        carPhys.vel.x*=-0.3; // 反発
+      } else {
+        const dir=carPhys.pos.z<(b.minZ+b.maxZ)/2?-1:1;
+        carPhys.pos.z+=dir*overlapZ;
+        carPhys.vel.z*=-0.3;
+      }
+      // 速度を大幅減衰（衝突ダメージ感）
+      carPhys.vel.x*=0.4;carPhys.vel.z*=0.4;
+    }
+
     // 車体エンティティ
     carRoot.setPosition(carPhys.pos);
     const q=new pc.Quat();
     q.setFromEulerAngles(carPhys.pitch*57.3,-carPhys.yaw*57.3,-carPhys.roll*57.3);
     carRoot.setRotation(q);
-
-    // タイヤ（ワールド空間）
-    updateWheels(carPhys);
 
     // スキッド
     if((st.slip>.28||st.isBurn)&&carPhys.onGround&&frame%3===0)addSkid(carPhys.pos,carPhys.yaw);
