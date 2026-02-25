@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>STREET RACER - Open World</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: #000;
+  font-family: 'Arial', sans-serif;
+}
+#canvas { width: 100%; height: 100%; display: block; }
+#hud {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none; z-index: 10;
+}
+#speedometer {
+  position: absolute; bottom: 20px; right: 20px;
+  background: rgba(0,0,0,0.7);
+  border: 2px solid #ff6600;
+  border-radius: 12px;
+  padding: 12px 18px;
+  color: #fff;
+  text-align: center;
+  min-width: 120px;
+}
+#speed-value {
+  font-size: 36px; font-weight: bold; color: #ff6600;
+  line-height: 1;
+}
+#speed-unit { font-size: 12px; color: #aaa; }
+#rpm-bar-wrap {
+  width: 100%; background: #333; border-radius: 4px;
+  height: 8px; margin-top: 8px;
+}
+#rpm-bar {
+  height: 8px; background: linear-gradient(90deg,#00ff00,#ffff00,#ff0000);
+  border-radius: 4px; width: 0%; transition: width 0.05s;
+}
+#gear-display {
+  font-size: 28px; font-weight: bold; color: #fff; margin-top: 6px;
+}
+#controls {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  display: flex; justify-content: space-between;
+  padding: 15px; pointer-events: auto;
+}
+.btn-group { display: flex; flex-direction: column; gap: 8px; align-items: center; }
+.btn {
+  width: 70px; height: 70px;
+  border-radius: 50%;
+  border: 3px solid rgba(255,255,255,0.4);
+  background: rgba(0,0,0,0.5);
+  color: #fff; font-size: 24px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  backdrop-filter: blur(4px);
+  font-weight: bold;
+  transition: background 0.1s, border-color 0.1s;
+}
+.btn:active, .btn.active { background: rgba(255,102,0,0.6); border-color: #ff6600; }
+#btn-accel { width: 80px; height: 80px; font-size: 28px; background: rgba(0,180,0,0.4); border-color: #00cc00; }
+#btn-brake { background: rgba(180,0,0,0.4); border-color: #cc0000; }
+.steer-group { display: flex; flex-direction: row; gap: 10px; align-items: center; }
+#btn-left { font-size: 28px; }
+#btn-right { font-size: 28px; }
+#gear-controls {
+  display: flex; flex-direction: column; gap: 6px; align-items: center;
+}
+.gear-btn {
+  width: 50px; height: 50px; font-size: 16px; font-weight: bold;
+  border-radius: 8px;
+}
+#minimap {
+  position: absolute; top: 10px; right: 10px;
+  width: 120px; height: 120px;
+  border: 2px solid #ff6600;
+  border-radius: 50%;
+  overflow: hidden;
+  background: rgba(0,30,0,0.7);
+}
+#minimap canvas { width: 100%; height: 100%; }
+#info {
+  position: absolute; top: 10px; left: 10px;
+  background: rgba(0,0,0,0.6);
+  border: 1px solid #ff6600;
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: #fff;
+  font-size: 13px;
+  line-height: 1.6;
+}
+#loading {
+  position: fixed; inset: 0; background: #000;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  z-index: 100; color: #fff;
+}
+#loading h1 { font-size: 48px; color: #ff6600; letter-spacing: 4px; margin-bottom: 10px; }
+#loading p { color: #aaa; font-size: 16px; margin-bottom: 30px; }
+#progress-wrap { width: 300px; background: #222; border-radius: 20px; height: 8px; }
+#progress-bar { height: 8px; background: #ff6600; border-radius: 20px; width: 0%; transition: width 0.3s; }
+</style>
+</head>
+<body>
+<div id="loading">
+  <h1>STREET RACER</h1>
+  <p>Loading physics engine...</p>
+  <div id="progress-wrap"><div id="progress-bar"></div></div>
+</div>
+
+<canvas id="canvas"></canvas>
+
+<div id="hud">
+  <div id="info">
+    <div id="pos-info">POS: 0, 0</div>
+    <div id="chunk-info">CHUNKS: 0</div>
+    <div id="npc-info">NPCs: 0</div>
+  </div>
+  <div id="minimap"><canvas id="minimap-canvas" width="120" height="120"></canvas></div>
+  <div id="speedometer">
+    <div id="speed-value">0</div>
+    <div id="speed-unit">km/h</div>
+    <div id="rpm-bar-wrap"><div id="rpm-bar"></div></div>
+    <div id="gear-display">D</div>
+  </div>
+  <div id="controls">
+    <div class="btn-group">
+      <div class="steer-group">
+        <div class="btn" id="btn-left">◀</div>
+        <div class="btn" id="btn-right">▶</div>
+      </div>
+    </div>
+    <div class="btn-group">
+      <div class="btn" id="btn-accel">▲</div>
+      <div class="btn" id="btn-brake">■</div>
+    </div>
+    <div class="btn-group" id="gear-controls">
+      <div class="btn gear-btn" id="btn-d">D</div>
+      <div class="btn gear-btn" id="btn-r">R</div>
+      <div class="btn gear-btn" id="btn-n">N</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Ammo.jsをCDNから動的ロード ──
+function loadScript(src) {
+  return new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = src; s.onload = res; s.onerror = rej;
+    document.head.appendChild(s);
+  });
+}
+
+const setProgress = (p) => document.getElementById('progress-bar').style.width = p + '%';
+
+async function main() {
+  setProgress(10);
+  // PlayCanvas
+  await loadScript('https://code.playcanvas.com/playcanvas-stable.min.js');
+  setProgress(40);
+  // Ammo.js
+  await loadScript('https://cdn.jsdelivr.net/npm/ammo.js@0.0.10/ammo.js');
+  setProgress(70);
+
+  // Ammo初期化
+  Ammo().then(AmmoLib => {
+    setProgress(90);
+    window.Ammo = AmmoLib;
+    initGame();
+    setProgress(100);
+    setTimeout(() => {
+      document.getElementById('loading').style.display = 'none';
+    }, 500);
+  });
+}
+
+main().catch(e => {
+  console.error(e);
+  document.getElementById('loading').innerHTML = '<h1 style="color:red">Error</h1><p>' + e.message + '</p>';
+});
+
+// ─────────────────────────────────────────────
+// GAME INIT
+// ─────────────────────────────────────────────
+function initGame() {
+  const canvas = document.getElementById('canvas');
+  const app = new pc.Application(canvas, {
+    mouse: new pc.Mouse(canvas),
+    touch: new pc.TouchDevice(canvas),
+    keyboard: new pc.Keyboard(window),
+    graphicsDeviceOptions: {
+      antialias: true,
+      alpha: false,
+      preserveDrawingBuffer: false,
+      powerPreference: 'high-performance'
+    }
+  });
+
+  app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+  app.setCanvasResolution(pc.RESOLUTION_AUTO);
+  app.start();
+
+  // ─── TEXTURE GENERATORS ───
+  function makeCanvasTex(app, w, h, drawFn, repeat = true) {
+    const cv = document.createElement('canvas');
+    cv.width = w; cv.height = h;
+    const ctx = cv.getContext('2d');
+    drawFn(ctx, w, h);
+    const tex = new pc.Texture(app.graphicsDevice, {
+      width: w, height: h,
+      format: pc.PIXELFORMAT_R8_G8_B8_A8,
+      mipmaps: true,
+      minFilter: pc.FILTER_LINEAR_MIPMAP_LINEAR,
+      magFilter: pc.FILTER_LINEAR,
+      addressU: repeat ? pc.ADDRESS_REPEAT : pc.ADDRESS_CLAMP_TO_EDGE,
+      addressV: repeat ? pc.ADDRESS_REPEAT : pc.ADDRESS_CLAMP_TO_EDGE
+    });
+    tex.setSource(cv);
+    return tex;
+  }
+
+  // アスファルト
+  const asphaltTex = makeCanvasTex(app, 256, 256, (ctx, w, h) => {
+    ctx.fillStyle = '#2a2a2a';
+    ctx.fillRect(0, 0, w, h);
+    // ノイズ粒
+    for (let i = 0; i < 4000; i++) {
+      const x = Math.random()*w, y = Math.random()*h;
+      const v = Math.floor(Math.random()*40 + 25);
+      ctx.fillStyle = `rgb(${v},${v},${v})`;
+      ctx.fillRect(x, y, 2, 2);
+    }
+    // センターライン
+    ctx.strokeStyle = '#ffdd00';
+    ctx.lineWidth = 4;
+    ctx.setLineDash([40, 30]);
+    ctx.beginPath(); ctx.moveTo(w/2, 0); ctx.lineTo(w/2, h); ctx.stroke();
+    // 車線
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([20, 20]);
+    ctx.beginPath(); ctx.moveTo(w/4, 0); ctx.lineTo(w/4, h); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(3*w/4, 0); ctx.lineTo(3*w/4, h); ctx.stroke();
+  });
+
+  // コンクリート壁
+  const concreteTex = makeCanvasTex(app, 256, 512, (ctx, w, h) => {
+    ctx.fillStyle = '#888';
+    ctx.fillRect(0, 0, w, h);
+    // ブロック模様
+    ctx.strokeStyle = '#666';
+    ctx.lineWidth = 1.5;
+    const bh = 40, bw = 60;
+    for (let y = 0; y < h; y += bh) {
+      const off = (Math.floor(y/bh) % 2) * (bw/2);
+      for (let x = -off; x < w; x += bw) {
+        ctx.strokeRect(x+1, y+1, bw-2, bh-2);
+      }
+    }
+    // ノイズ
+    for (let i = 0; i < 3000; i++) {
+      const x = Math.random()*w, y = Math.random()*h;
+      const v = Math.floor(Math.random()*30 + 100);
+      ctx.globalAlpha = 0.3;
+      ctx.fillStyle = `rgb(${v},${v},${v})`;
+      ctx.fillRect(x, y, 2, 2);
+    }
+    ctx.globalAlpha = 1;
+  });
+
+  // ガラスビル
+  const glassTex = makeCanvasTex(app, 256, 512, (ctx, w, h) => {
+    // 背景
+    const grd = ctx.createLinearGradient(0, 0, w, h);
+    grd.addColorStop(0, '#1a3a5a');
+    grd.addColorStop(1, '#2a5a8a');
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, 0, w, h);
+    // ウィンドウ
+    const ww = 35, wh = 25, gap = 8;
+    for (let y = gap; y < h - wh; y += wh + gap) {
+      for (let x = gap; x < w - ww; x += ww + gap) {
+        const r = Math.random();
+        if (r < 0.6) {
+          ctx.fillStyle = `rgba(255,240,180,${0.3+Math.random()*0.5})`;
+        } else {
+          ctx.fillStyle = 'rgba(40,80,120,0.8)';
+        }
+        ctx.fillRect(x, y, ww-2, wh-2);
+        // 窓枠
+        ctx.strokeStyle = 'rgba(200,220,255,0.3)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x, y, ww-2, wh-2);
+      }
+    }
+  });
+
+  // 草地
+  const grassTex = makeCanvasTex(app, 256, 256, (ctx, w, h) => {
+    const grd = ctx.createLinearGradient(0, 0, 0, h);
+    grd.addColorStop(0, '#3a6b2a');
+    grd.addColorStop(1, '#2a5020');
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, 0, w, h);
+    // 草の線
+    for (let i = 0; i < 500; i++) {
+      const x = Math.random()*w, y = Math.random()*h;
+      const v = Math.floor(Math.random()*40);
+      ctx.fillStyle = `rgb(${40+v},${80+v},${30+v})`;
+      ctx.fillRect(x, y, 2, 4);
+    }
+    // 土の斑
+    for (let i = 0; i < 100; i++) {
+      const x = Math.random()*w, y = Math.random()*h;
+      ctx.fillStyle = 'rgba(100,70,40,0.3)';
+      ctx.beginPath();
+      ctx.arc(x, y, 3+Math.random()*5, 0, Math.PI*2);
+      ctx.fill();
+    }
+  });
+
+  // 水面
+  const waterTex = makeCanvasTex(app, 256, 256, (ctx, w, h) => {
+    const grd = ctx.createLinearGradient(0, 0, w, h);
+    grd.addColorStop(0, '#0a3a6a');
+    grd.addColorStop(0.5, '#1a5a9a');
+    grd.addColorStop(1, '#0a4a7a');
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, 0, w, h);
+    // 波紋
+    ctx.strokeStyle = 'rgba(100,180,255,0.4)';
+    ctx.lineWidth = 1.5;
+    for (let i = 0; i < 8; i++) {
+      const y = (i / 8) * h;
+      ctx.beginPath();
+      for (let x = 0; x < w; x += 4) {
+        const wy = y + Math.sin((x/w)*Math.PI*6 + i)*6;
+        if (x === 0) ctx.moveTo(x, wy);
+        else ctx.lineTo(x, wy);
+      }
+      ctx.stroke();
+    }
+    // ハイライト
+    for (let i = 0; i < 30; i++) {
+      const x = Math.random()*w, y = Math.random()*h;
+      ctx.fillStyle = 'rgba(200,230,255,0.3)';
+      ctx.beginPath();
+      ctx.ellipse(x, y, 10+Math.random()*20, 3, 0, 0, Math.PI*2);
+      ctx.fill();
+    }
+  });
+
+  // 屋上
+  const rooftopTex = makeCanvasTex(app, 256, 256, (ctx, w, h) => {
+    ctx.fillStyle = '#555';
+    ctx.fillRect(0, 0, w, h);
+    // グリッド
+    ctx.strokeStyle = '#444';
+    ctx.lineWidth = 1;
+    for (let i = 0; i < w; i += 32) ctx.strokeRect(i, 0, 32, h);
+    for (let j = 0; j < h; j += 32) ctx.strokeRect(0, j, w, 32);
+    // ダクト
+    for (let i = 0; i < 5; i++) {
+      const x = Math.random()*w, y = Math.random()*h;
+      ctx.fillStyle = '#666';
+      ctx.fillRect(x, y, 20+Math.random()*30, 15+Math.random()*20);
+      ctx.strokeStyle = '#888';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(x, y, 20+Math.random()*30, 15+Math.random()*20);
+    }
+  });
+
+  // スキッドマーク
+  const skidTex = makeCanvasTex(app, 128, 512, (ctx, w, h) => {
+    ctx.fillStyle = 'rgba(0,0,0,0)';
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = 'rgba(10,10,10,0.85)';
+    const margin = 15;
+    ctx.fillRect(margin, 0, 20, h);
+    ctx.fillRect(w - margin - 20, 0, 20, h);
+    // ノイズ
+    for (let i = 0; i < 300; i++) {
+      const x = Math.random()<0.5 ? (margin + Math.random()*20) : (w-margin-20+Math.random()*20);
+      const y = Math.random()*h;
+      ctx.fillStyle = `rgba(0,0,0,${0.3+Math.random()*0.5})`;
+      ctx.fillRect(x, y, 2, 3);
+    }
+  });
+
+  // 橋テクスチャ
+  const bridgeTex = makeCanvasTex(app, 256, 256, (ctx, w, h) => {
+    ctx.fillStyle = '#888';
+    ctx.fillRect(0, 0, w, h);
+    // 鉄骨模様
+    ctx.strokeStyle = '#777';
+    ctx.lineWidth = 3;
+    for (let i = 0; i < 6; i++) {
+      const y = (i/6)*h;
+      ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke();
+    }
+    ctx.strokeStyle = '#666';
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 5; i++) {
+      ctx.beginPath(); ctx.moveTo(i*(w/4),0); ctx.lineTo((i+1)*(w/4),h); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo((i+1)*(w/4),0); ctx.lineTo(i*(w/4),h); ctx.stroke();
+    }
+    // 錆
+    for (let i = 0; i < 200; i++) {
+      const x = Math.random()*w, y = Math.random()*h;
+      ctx.fillStyle = `rgba(120,60,20,${0.1+Math.random()*0.2})`;
+      ctx.fillRect(x, y, 4, 4);
+    }
+  });
+
+  // 車体テクスチャ
+  function makeCarTex(r, g, b) {
+    return makeCanvasTex(app, 128, 128, (ctx, w, h) => {
+      const grd = ctx.createLinearGradient(0, 0, 0, h);
+      grd.addColorStop(0, `rgb(${Math.min(255,r+60)},${Math.min(255,g+60)},${Math.min(255,b+60)})`);
+      grd.addColorStop(0.5, `rgb(${r},${g},${b})`);
+      grd.addColorStop(1, `rgb(${Math.max(0,r-40)},${Math.max(0,g-40)},${Math.max(0,b-40)})`);
+      ctx.fillStyle = grd;
+      ctx.fillRect(0, 0, w, h);
+      // 光沢
+      ctx.fillStyle = 'rgba(255,255,255,0.2)';
+      ctx.fillRect(10, 5, w-20, 20);
+    }, false);
+  }
+
+  // タイヤテクスチャ
+  const tireTex = makeCanvasTex(app, 64, 64, (ctx, w, h) => {
+    ctx.fillStyle = '#222';
+    ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = '#444';
+    ctx.lineWidth = 3;
+    for (let i = 0; i < 8; i++) {
+      const angle = (i/8)*Math.PI*2;
+      ctx.beginPath();
+      ctx.moveTo(w/2, h/2);
+      ctx.lineTo(w/2 + Math.cos(angle)*w/2, h/2 + Math.sin(angle)*h/2);
+      ctx.stroke();
+    }
+  });
+
+  // ─── MATERIAL HELPER ───
+  function makeMat(tex, tileU = 1, tileV = 1, emissive = null) {
+    const m = new pc.StandardMaterial();
+    m.diffuseMap = tex;
+    m.diffuseMapTiling = new pc.Vec2(tileU, tileV);
+    m.roughness = 0.85;
+    m.metalness = 0.05;
+    if (emissive) { m.emissive = emissive; m.emissiveIntensity = 0.3; }
+    m.update();
+    return m;
+  }
+
+  // ─── PHYSICS SETUP ───
+  const collConfig = new Ammo.btDefaultCollisionConfiguration();
+  const dispatcher = new Ammo.btCollisionDispatcher(collConfig);
+  const broadphase = new Ammo.btDbvtBroadphase();
+  const solver = new Ammo.btSequentialImpulseConstraintSolver();
+  const physWorld = new Ammo.btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collConfig);
+  physWorld.setGravity(new Ammo.btVector3(0, -15, 0));
+
+  // ─── NOISE ───
+  function noise2d(x, z, seed = 1) {
+    const s = Math.sin(x * 127.1 + seed) * 43758.5453;
+    const t = Math.sin(z * 311.7 + seed) * 43758.5453;
+    return (Math.sin(s + t) + 1) * 0.5;
+  }
+  function smoothNoise(x, z, scale = 0.02) {
+    const ix = Math.floor(x * scale), iz = Math.floor(z * scale);
+    const fx = x * scale - ix, fz = z * scale - iz;
+    const ux = fx * fx * (3 - 2 * fx), uz = fz * fz * (3 - 2 * fz);
+    const a = noise2d(ix, iz), b = noise2d(ix+1, iz);
+    const c = noise2d(ix, iz+1), d = noise2d(ix+1, iz+1);
+    return a*(1-ux)*(1-uz) + b*ux*(1-uz) + c*(1-ux)*uz + d*ux*uz;
+  }
+  function getHeight(x, z) {
+    // 道路付近は平坦
+    const roadMask = Math.max(0, 1 - Math.min(Math.abs(x % 200 - 100), Math.abs(z % 200 - 100)) / 30);
+    const h = smoothNoise(x, z, 0.008) * 12 - 2;
+    return h * (1 - roadMask * 0.9);
+  }
+
+  // ─── CHUNK SYSTEM ───
+  const CHUNK_SIZE = 200;
+  const CHUNK_RENDER_DIST = 2; // 2チャンク半径
+  const CHUNK_PHYSICS_DIST = 1;
+  const chunks = new Map();
+  const chunkPhysBodies = new Map();
+
+  function chunkKey(cx, cz) { return `${cx},${cz}`; }
+
+  function createChunk(cx, cz) {
+    const key = chunkKey(cx, cz);
+    if (chunks.has(key)) return;
+
+    const worldX = cx * CHUNK_SIZE;
+    const worldZ = cz * CHUNK_SIZE;
+    const entities = [];
+
+    // ─ 地面メッシュ（16x16グリッド） ─
+    const segs = 16;
+    const step = CHUNK_SIZE / segs;
+    const positions = [], uvs = [], normals = [], indices = [];
+
+    for (let zi = 0; zi <= segs; zi++) {
+      for (let xi = 0; xi <= segs; xi++) {
+        const lx = xi * step;
+        const lz = zi * step;
+        const wx = worldX + lx;
+        const wz = worldZ + lz;
+        const h = getHeight(wx, wz);
+        positions.push(lx - CHUNK_SIZE/2, h, lz - CHUNK_SIZE/2);
+        uvs.push(xi / segs * 4, zi / segs * 4);
+        normals.push(0, 1, 0);
+      }
+    }
+    for (let zi = 0; zi < segs; zi++) {
+      for (let xi = 0; xi < segs; xi++) {
+        const i = zi * (segs + 1) + xi;
+        indices.push(i, i + segs + 1, i + 1, i + 1, i + segs + 1, i + segs + 2);
+      }
+    }
+    // 法線再計算（簡易）
+    for (let i = 0; i < indices.length; i += 3) {
+      const i0 = indices[i]*3, i1 = indices[i+1]*3, i2 = indices[i+2]*3;
+      const ax = positions[i1]-positions[i0], ay = positions[i1+1]-positions[i0+1], az = positions[i1+2]-positions[i0+2];
+      const bx = positions[i2]-positions[i0], by = positions[i2+1]-positions[i0+1], bz = positions[i2+2]-positions[i0+2];
+      const nx = ay*bz-az*by, ny = az*bx-ax*bz, nz = ax*by-ay*bx;
+      const len = Math.sqrt(nx*nx+ny*ny+nz*nz)+0.001;
+      for (let j = 0; j < 3; j++) {
+        const ii = indices[i+j];
+        normals[ii*3] += nx/len;
+        normals[ii*3+1] += ny/len;
+        normals[ii*3+2] += nz/len;
+      }
+    }
+
+    const mesh = new pc.Mesh(app.graphicsDevice);
+    mesh.setPositions(positions);
+    mesh.setNormals(normals);
+    mesh.setUvs(0, uvs);
+    mesh.setIndices(indices);
+    mesh.update();
+
+    const groundMat = makeMat(grassTex, 4, 4);
+    const mi = new pc.MeshInstance(mesh, groundMat);
+    const ge = new pc.Entity('ground_' + key);
+    ge.addComponent('render', { meshInstances: [mi] });
+    ge.setPosition(worldX + CHUNK_SIZE/2, 0, worldZ + CHUNK_SIZE/2);
+    app.root.addChild(ge);
+    entities.push(ge);
+
+    // ─ 道路 ─
+    const hasRoadX = true; // すべてのチャンクにX方向道路
+    const hasRoadZ = true;
+    const ROAD_WIDTH = 20;
+
+    if (hasRoadX) {
+      const roadE = createRoadSegment(
+        worldX, getHeight(worldX + CHUNK_SIZE/2, worldZ + CHUNK_SIZE/2),
+        worldZ + CHUNK_SIZE/2 - ROAD_WIDTH/2,
+        CHUNK_SIZE, ROAD_WIDTH, 0
+      );
+      app.root.addChild(roadE);
+      entities.push(roadE);
+    }
+    if (hasRoadZ) {
+      const roadE = createRoadSegment(
+        worldX + CHUNK_SIZE/2 - ROAD_WIDTH/2,
+        getHeight(worldX + CHUNK_SIZE/2, worldZ + CHUNK_SIZE/2),
+        worldZ,
+        ROAD_WIDTH, CHUNK_SIZE, 1
+      );
+      app.root.addChild(roadE);
+      entities.push(roadE);
+    }
+
+    // ─ 川 ─
+    const hasCave = (smoothNoise(cx, cz, 1) > 0.65);
+    if (hasCave) {
+      const riverX = worldX + CHUNK_SIZE * 0.3;
+      const riverZ = worldZ;
+      const riverW = 25 + smoothNoise(cx, cz, 2) * 15;
+      const riverE = new pc.Entity('river_' + key);
+      riverE.addComponent('render', {
+        type: 'plane',
+        material: makeMat(waterTex, 2, 6)
+      });
+      riverE.setLocalScale(riverW, 1, CHUNK_SIZE);
+      riverE.setPosition(riverX, getHeight(riverX, worldZ + CHUNK_SIZE/2) - 0.3, worldZ + CHUNK_SIZE/2);
+      app.root.addChild(riverE);
+      entities.push(riverE);
+
+      // 橋
+      if (hasRoadX) {
+        const bridgeH = Math.max(getHeight(worldX + CHUNK_SIZE/2, worldZ + CHUNK_SIZE/2), -1) + 0.5;
+        const bridgeE = new pc.Entity('bridge_' + key);
+        bridgeE.addComponent('render', { type: 'box', material: makeMat(bridgeTex, 2, 1) });
+        bridgeE.setLocalScale(riverW + 4, 1.2, ROAD_WIDTH + 2);
+        bridgeE.setPosition(riverX, bridgeH, worldZ + CHUNK_SIZE/2);
+        app.root.addChild(bridgeE);
+        entities.push(bridgeE);
+      }
+    }
+
+    // ─ ビル ─
+    const buildCount = Math.floor(2 + smoothNoise(cx*3, cz*3, 4) * 5);
+    const rng = (seed) => (Math.sin(cx * 1000 + cz * 100 + seed) * 0.5 + 0.5);
+    for (let bi = 0; bi < buildCount; bi++) {
+      const bx = worldX + rng(bi*7) * CHUNK_SIZE;
+      const bz = worldZ + rng(bi*7+1) * CHUNK_SIZE;
+      // 道路から離す
+      const distRoadX = Math.abs((bz - (worldZ + CHUNK_SIZE/2)));
+      const distRoadZ = Math.abs((bx - (worldX + CHUNK_SIZE/2)));
+      if (distRoadX < 18 || distRoadZ < 18) continue;
+
+      const bw = 15 + rng(bi*7+2) * 20;
+      const bd = 15 + rng(bi*7+3) * 20;
+      const bh = 20 + rng(bi*7+4) * 80;
+      const groundH = getHeight(bx, bz);
+      const isGlass = rng(bi*7+5) > 0.5;
+      const wallTex = isGlass ? glassTex : concreteTex;
+      const uvScale = bh / 20;
+
+      // 壁
+      const wallMat = makeMat(wallTex, 1, uvScale);
+      const buildE = new pc.Entity('build_' + key + '_' + bi);
+      buildE.addComponent('render', { type: 'box', material: wallMat });
+      buildE.setLocalScale(bw, bh, bd);
+      buildE.setPosition(bx, groundH + bh/2, bz);
+      buildE.setEulerAngles(0, rng(bi*7+6)*10-5, 0);
+      app.root.addChild(buildE);
+      entities.push(buildE);
+
+      // 屋上
+      const roofMat = makeMat(rooftopTex, 1, 1);
+      const roofE = new pc.Entity('roof_' + key + '_' + bi);
+      roofE.addComponent('render', { type: 'box', material: roofMat });
+      roofE.setLocalScale(bw, 0.5, bd);
+      roofE.setPosition(bx, groundH + bh + 0.25, bz);
+      app.root.addChild(roofE);
+      entities.push(roofE);
+    }
+
+    chunks.set(key, entities);
+  }
+
+  function createRoadSegment(x, y, z, w, d, rot) {
+    const e = new pc.Entity('road');
+    e.addComponent('render', { type: 'plane', material: makeMat(asphaltTex, rot===0 ? 6 : 1, rot===0 ? 1 : 6) });
+    if (rot === 0) {
+      e.setLocalScale(w, 1, d);
+      e.setPosition(x + w/2, y + 0.05, z + d/2);
+    } else {
+      e.setLocalScale(w, 1, d);
+      e.setPosition(x + w/2, y + 0.05, z + d/2);
+    }
+    return e;
+  }
+
+  function removeChunk(key) {
+    const ents = chunks.get(key);
+    if (!ents) return;
+    ents.forEach(e => e.destroy());
+    chunks.delete(key);
+    // 物理ボディ
+    const body = chunkPhysBodies.get(key);
+    if (body) { physWorld.removeRigidBody(body); Ammo.destroy(body); chunkPhysBodies.delete(key); }
+  }
+
+  function createChunkPhysics(cx, cz) {
+    const key = chunkKey(cx, cz);
+    if (chunkPhysBodies.has(key)) return;
+
+    // 簡易地面物理（平面プラス段差）
+    const compShape = new Ammo.btCompoundShape();
+    const segs = 8;
+    const step = CHUNK_SIZE / segs;
+    const worldX = cx * CHUNK_SIZE, worldZ = cz * CHUNK_SIZE;
+
+    for (let zi = 0; zi < segs; zi++) {
+      for (let xi = 0; xi < segs; xi++) {
+        const lx = worldX + (xi + 0.5) * step;
+        const lz = worldZ + (zi + 0.5) * step;
+        const h = getHeight(lx, lz);
+        const boxShape = new Ammo.btBoxShape(new Ammo.btVector3(step/2, 0.5, step/2));
+        const tr = new Ammo.btTransform();
+        tr.setIdentity();
+        tr.setOrigin(new Ammo.btVector3(lx, h - 0.5, lz));
+        compShape.addChildShape(tr, boxShape);
+      }
+    }
+
+    const mass = 0;
+    const inertia = new Ammo.btVector3(0, 0, 0);
+    const startTr = new Ammo.btTransform(); startTr.setIdentity();
+    startTr.setOrigin(new Ammo.btVector3(0, 0, 0));
+    const motionState = new Ammo.btDefaultMotionState(startTr);
+    const rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, motionState, compShape, inertia);
+    const body = new Ammo.btRigidBody(rbInfo);
+    body.setFriction(0.8);
+    physWorld.addRigidBody(body);
+    chunkPhysBodies.set(key, body);
+  }
+
+  function removeChunkPhysics(key) {
+    const body = chunkPhysBodies.get(key);
+    if (body) {
+      physWorld.removeRigidBody(body);
+      chunkPhysBodies.delete(key);
+    }
+  }
+
+  // ─── PLAYER CAR SETUP ───
+  function createPlayerCar() {
+    const carColors = [
+      [220,50,50], [50,100,220], [50,180,80], [220,180,50], [180,50,220]
+    ];
+    const col = carColors[Math.floor(Math.random()*carColors.length)];
+    const carTex = makeCarTex(...col);
+
+    // ボディ
+    const bodyE = new pc.Entity('carBody');
+    app.root.addChild(bodyE);
+
+    // メッシュ
+    const bodyMesh = new pc.Entity('bodyMesh');
+    bodyMesh.addComponent('render', { type: 'box', material: makeMat(carTex, 1, 1) });
+    bodyMesh.setLocalScale(2, 0.8, 4.5);
+    bodyMesh.setLocalPosition(0, 0, 0);
+    bodyE.addChild(bodyMesh);
+
+    const roofMesh = new pc.Entity('roofMesh');
+    roofMesh.addComponent('render', { type: 'box', material: makeMat(carTex, 1, 1) });
+    roofMesh.setLocalScale(1.6, 0.6, 2.2);
+    roofMesh.setLocalPosition(0, 0.7, 0.2);
+    bodyE.addChild(roofMesh);
+
+    // ヘッドライト
+    const hlMat = new pc.StandardMaterial();
+    hlMat.emissive = new pc.Color(1, 1, 0.8);
+    hlMat.emissiveIntensity = 1;
+    hlMat.update();
+    ['left','right'].forEach((side, si) => {
+      const hl = new pc.Entity('hl_'+side);
+      hl.addComponent('render', { type: 'box', material: hlMat });
+      hl.setLocalScale(0.5, 0.25, 0.1);
+      hl.setLocalPosition((si===0?-0.7:0.7), 0.0, -2.3);
+      bodyE.addChild(hl);
+    });
+
+    // タイヤ
+    const tireMat = makeMat(tireTex, 1, 1);
+    const wheelEntities = [];
+    const wheelPositions = [
+      [-1.1, -0.3, -1.4],
+      [1.1, -0.3, -1.4],
+      [-1.1, -0.3, 1.4],
+      [1.1, -0.3, 1.4]
+    ];
+    wheelPositions.forEach((wp, wi) => {
+      const we = new pc.Entity('wheel_'+wi);
+      we.addComponent('render', { type: 'cylinder', material: tireMat });
+      we.setLocalScale(0.5, 0.35, 0.5);
+      we.setLocalEulerAngles(0, 0, 90);
+      we.setLocalPosition(...wp);
+      bodyE.addChild(we);
+      wheelEntities.push(we);
+    });
+
+    // ─── Ammo RaycastVehicle ───
+    const chassisShape = new Ammo.btBoxShape(new Ammo.btVector3(1.0, 0.35, 2.25));
+    const mass = 1400;
+    const inertia = new Ammo.btVector3(0, 0, 0);
+    chassisShape.calculateLocalInertia(mass, inertia);
+
+    const startTr = new Ammo.btTransform();
+    startTr.setIdentity();
+    startTr.setOrigin(new Ammo.btVector3(0, 5, 0));
+    const motionState = new Ammo.btDefaultMotionState(startTr);
+    const rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, motionState, chassisShape, inertia);
+    const chassisBody = new Ammo.btRigidBody(rbInfo);
+    chassisBody.setActivationState(4); // DISABLE_DEACTIVATION
+    physWorld.addRigidBody(chassisBody);
+
+    const tuning = new Ammo.btVehicleTuning();
+    const vehicleRaycaster = new Ammo.btDefaultVehicleRaycaster(physWorld);
+    const vehicle = new Ammo.btRaycastVehicle(tuning, chassisBody, vehicleRaycaster);
+    vehicle.setCoordinateSystem(0, 1, 2);
+    physWorld.addAction(vehicle);
+
+    // ホイール設定
+    const wheelInfo = [
+      { pos: [-1.0, -0.1, -1.3], isFront: true },
+      { pos: [1.0, -0.1, -1.3], isFront: true },
+      { pos: [-1.0, -0.1, 1.3], isFront: false },
+      { pos: [1.0, -0.1, 1.3], isFront: false }
+    ];
+
+    wheelInfo.forEach((wi, i) => {
+      const connectionPoint = new Ammo.btVector3(wi.pos[0], wi.pos[1], wi.pos[2]);
+      const wheelDir = new Ammo.btVector3(0, -1, 0);
+      const wheelAxle = new Ammo.btVector3(-1, 0, 0);
+      const suspRestLen = 0.3;
+      const wheelRadius = 0.4;
+
+      vehicle.addWheel(connectionPoint, wheelDir, wheelAxle, suspRestLen, wheelRadius, tuning, wi.isFront);
+
+      const w = vehicle.getWheelInfo(i);
+      w.set_m_suspensionStiffness(30);
+      w.set_m_wheelsDampingRelaxation(2.3);
+      w.set_m_wheelsDampingCompression(4.4);
+      w.set_m_maxSuspensionForce(12000);
+      w.set_m_frictionSlip(1.8);
+      w.set_m_rollInfluence(0.1);
+    });
+
+    return { bodyE, chassisBody, vehicle, wheelEntities };
+  }
+
+  const playerCar = createPlayerCar();
+  const { bodyE: carBodyE, chassisBody, vehicle: playerVehicle, wheelEntities } = playerCar;
+
+  // ─── NPC CARS ───
+  const npcColors = [[220,80,80],[80,80,220],[80,200,80],[200,200,80],[200,80,200],[80,200,200]];
+  const npcs = [];
+  const MAX_NPCS = 8;
+
+  function createNPC(x, y, z) {
+    if (npcs.length >= MAX_NPCS) return null;
+    const col = npcColors[Math.floor(Math.random()*npcColors.length)];
+    const npcTex = makeCarTex(...col);
+
+    const npcE = new pc.Entity('npc');
+    app.root.addChild(npcE);
+
+    const bodyM = new pc.Entity();
+    bodyM.addComponent('render', { type: 'box', material: makeMat(npcTex, 1, 1) });
+    bodyM.setLocalScale(2, 0.8, 4.5);
+    npcE.addChild(bodyM);
+
+    const roofM = new pc.Entity();
+    roofM.addComponent('render', { type: 'box', material: makeMat(npcTex, 1, 1) });
+    roofM.setLocalScale(1.6, 0.6, 2.2);
+    roofM.setLocalPosition(0, 0.7, 0.2);
+    npcE.addChild(roofM);
+
+    // 物理
+    const shape = new Ammo.btBoxShape(new Ammo.btVector3(1.0, 0.4, 2.25));
+    const mass = 1200;
+    const inertia = new Ammo.btVector3(0, 0, 0);
+    shape.calculateLocalInertia(mass, inertia);
+    const tr = new Ammo.btTransform();
+    tr.setIdentity();
+    tr.setOrigin(new Ammo.btVector3(x, y + 2, z));
+    const ms = new Ammo.btDefaultMotionState(tr);
+    const rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, ms, shape, inertia);
+    const body = new Ammo.btRigidBody(rbInfo);
+    body.setActivationState(4);
+    physWorld.addRigidBody(body);
+
+    // NPC AI
+    const npcTuning = new Ammo.btVehicleTuning();
+    const npcRaycaster = new Ammo.btDefaultVehicleRaycaster(physWorld);
+    const npcVehicle = new Ammo.btRaycastVehicle(npcTuning, body, npcRaycaster);
+    npcVehicle.setCoordinateSystem(0, 1, 2);
+    physWorld.addAction(npcVehicle);
+
+    [[-0.9,-0.1,-1.2],[0.9,-0.1,-1.2],[-0.9,-0.1,1.2],[0.9,-0.1,1.2]].forEach((wp, i) => {
+      const cp = new Ammo.btVector3(wp[0], wp[1], wp[2]);
+      const wd = new Ammo.btVector3(0,-1,0);
+      const wa = new Ammo.btVector3(-1,0,0);
+      npcVehicle.addWheel(cp, wd, wa, 0.3, 0.4, npcTuning, i < 2);
+      const w = npcVehicle.getWheelInfo(i);
+      w.set_m_suspensionStiffness(25);
+      w.set_m_wheelsDampingRelaxation(2.0);
+      w.set_m_wheelsDampingCompression(4.0);
+      w.set_m_maxSuspensionForce(10000);
+      w.set_m_frictionSlip(1.5);
+      w.set_m_rollInfluence(0.1);
+    });
+
+    const npcObj = {
+      entity: npcE,
+      body,
+      vehicle: npcVehicle,
+      waypoint: new pc.Vec3(x + (Math.random()-0.5)*200, 0, z + (Math.random()-0.5)*200),
+      speed: 800 + Math.random()*400
+    };
+    npcs.push(npcObj);
+    return npcObj;
+  }
+
+  // ─── CAMERA ───
+  const cameraE = new pc.Entity('camera');
+  cameraE.addComponent('camera', {
+    fov: 70,
+    nearClip: 0.5,
+    farClip: 600,
+    clearColor: new pc.Color(0.5, 0.7, 0.9)
+  });
+  app.root.addChild(cameraE);
+
+  // ─── LIGHTING ───
+  const sun = new pc.Entity('sun');
+  sun.addComponent('light', {
+    type: 'directional',
+    color: new pc.Color(1, 0.95, 0.85),
+    intensity: 1.4,
+    castShadows: true,
+    shadowBias: 0.2,
+    shadowResolution: 1024
+  });
+  sun.setEulerAngles(45, 135, 0);
+  app.root.addChild(sun);
+
+  const sky = new pc.Entity('sky');
+  sky.addComponent('light', {
+    type: 'directional',
+    color: new pc.Color(0.4, 0.6, 0.8),
+    intensity: 0.4
+  });
+  sky.setEulerAngles(-45, 0, 0);
+  app.root.addChild(sky);
+
+  // ─── INPUT ───
+  let inputState = {
+    accel: false, brake: false, left: false, right: false,
+    gear: 'D' // D, R, N
+  };
+  let engineForce = 0, steerVal = 0, brakeForce = 0;
+  let rpm = 0, accelTime = 0;
+
+  // タッチ/マウス
+  function setupBtn(id, onDown, onUp) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('pointerdown', e => { e.preventDefault(); onDown(); el.classList.add('active'); });
+    el.addEventListener('pointerup', e => { e.preventDefault(); onUp(); el.classList.remove('active'); });
+    el.addEventListener('pointerleave', e => { onUp(); el.classList.remove('active'); });
+  }
+
+  setupBtn('btn-accel', () => inputState.accel = true, () => inputState.accel = false);
+  setupBtn('btn-brake', () => inputState.brake = true, () => inputState.brake = false);
+  setupBtn('btn-left', () => inputState.left = true, () => inputState.left = false);
+  setupBtn('btn-right', () => inputState.right = true, () => inputState.right = false);
+
+  document.getElementById('btn-d').addEventListener('click', () => { inputState.gear = 'D'; updateGearUI(); });
+  document.getElementById('btn-r').addEventListener('click', () => { inputState.gear = 'R'; updateGearUI(); });
+  document.getElementById('btn-n').addEventListener('click', () => { inputState.gear = 'N'; updateGearUI(); });
+
+  function updateGearUI() {
+    ['btn-d','btn-r','btn-n'].forEach(id => document.getElementById(id).classList.remove('active'));
+    const map = { D:'btn-d', R:'btn-r', N:'btn-n' };
+    document.getElementById(map[inputState.gear]).classList.add('active');
+    document.getElementById('gear-display').textContent = inputState.gear;
+  }
+  updateGearUI();
+
+  // キーボード
+  const keys = {};
+  window.addEventListener('keydown', e => {
+    keys[e.code] = true;
+    if (e.code === 'KeyD') { inputState.gear = 'D'; updateGearUI(); }
+    if (e.code === 'KeyR') { inputState.gear = 'R'; updateGearUI(); }
+    if (e.code === 'KeyN') { inputState.gear = 'N'; updateGearUI(); }
+  });
+  window.addEventListener('keyup', e => { keys[e.code] = false; });
+
+  // ─── AUDIO ───
+  let audioCtx = null;
+  let engineNode = null, engineGain = null;
+  let slipNode = null, slipGain = null;
+
+  function initAudio() {
+    if (audioCtx) return;
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    // エンジン音 (oscillator)
+    engineNode = audioCtx.createOscillator();
+    engineNode.type = 'sawtooth';
+    engineNode.frequency.value = 80;
+    const distortion = audioCtx.createWaveShaper();
+    const curve = new Float32Array(256);
+    for (let i = 0; i < 256; i++) {
+      const x = (i * 2) / 256 - 1;
+      curve[i] = (Math.PI + 300) * x / (Math.PI + 300 * Math.abs(x));
+    }
+    distortion.curve = curve;
+    engineGain = audioCtx.createGain();
+    engineGain.gain.value = 0.08;
+    engineNode.connect(distortion);
+    distortion.connect(engineGain);
+    engineGain.connect(audioCtx.destination);
+    engineNode.start();
+
+    // スリップ音
+    const bufferSize = 2048;
+    slipNode = audioCtx.createScriptProcessor(bufferSize, 1, 1);
+    slipNode.onaudioprocess = e => {
+      const out = e.outputBuffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) out[i] = (Math.random()*2-1);
+    };
+    slipGain = audioCtx.createGain();
+    slipGain.gain.value = 0;
+    const slipFilter = audioCtx.createBiquadFilter();
+    slipFilter.type = 'bandpass';
+    slipFilter.frequency.value = 800;
+    slipNode.connect(slipFilter);
+    slipFilter.connect(slipGain);
+    slipGain.connect(audioCtx.destination);
+  }
+
+  canvas.addEventListener('pointerdown', () => initAudio(), { once: true });
+  window.addEventListener('keydown', () => initAudio(), { once: true });
+
+  // ─── SKID MARKS ───
+  const skidMarks = [];
+  const MAX_SKID = 20;
+  const skidMat = makeMat(skidTex, 1, 1);
+
+  function addSkidMark(pos, rot) {
+    if (skidMarks.length >= MAX_SKID) {
+      const old = skidMarks.shift();
+      old.destroy();
+    }
+    const e = new pc.Entity('skid');
+    e.addComponent('render', { type: 'plane', material: skidMat });
+    e.setLocalScale(1.2, 1, 3);
+    e.setPosition(pos.x, pos.y + 0.02, pos.z);
+    e.setEulerAngles(0, rot, 0);
+    app.root.addChild(e);
+    skidMarks.push(e);
+  }
+
+  // ─── HELPERS ───
+  const tmpTr = new Ammo.btTransform();
+  function getBodyTransform(body) {
+    body.getMotionState().getWorldTransform(tmpTr);
+    const o = tmpTr.getOrigin();
+    const q = tmpTr.getRotation();
+    return {
+      pos: new pc.Vec3(o.x(), o.y(), o.z()),
+      rot: new pc.Quat(q.x(), q.y(), q.z(), q.w())
+    };
+  }
+
+  // ─── MINIMAP ───
+  const mmCanvas = document.getElementById('minimap-canvas');
+  const mmCtx = mmCanvas.getContext('2d');
+  const MM_SIZE = 120;
+
+  function drawMinimap(playerPos, carAngle) {
+    mmCtx.clearRect(0, 0, MM_SIZE, MM_SIZE);
+    mmCtx.fillStyle = 'rgba(0,40,0,0.8)';
+    mmCtx.fillRect(0, 0, MM_SIZE, MM_SIZE);
+
+    const scale = 1.5; // ユニット/ピクセル
+    const cx = MM_SIZE/2, cy = MM_SIZE/2;
+
+    // 道路
+    mmCtx.strokeStyle = '#666';
+    mmCtx.lineWidth = 3;
+    for (let i = -3; i <= 3; i++) {
+      const rx = cx + (i * CHUNK_SIZE / scale);
+      mmCtx.beginPath(); mmCtx.moveTo(rx, 0); mmCtx.lineTo(rx, MM_SIZE); mmCtx.stroke();
+      const rz = cy + (i * CHUNK_SIZE / scale);
+      mmCtx.beginPath(); mmCtx.moveTo(0, rz); mmCtx.lineTo(MM_SIZE, rz); mmCtx.stroke();
+    }
+
+    // NPC
+    npcs.forEach(npc => {
+      const { pos: np } = getBodyTransform(npc.body);
+      const dx = (np.x - playerPos.x) / scale;
+      const dz = (np.z - playerPos.z) / scale;
+      mmCtx.fillStyle = '#ff4444';
+      mmCtx.fillRect(cx + dx - 2, cy + dz - 2, 4, 4);
+    });
+
+    // プレイヤー
+    mmCtx.save();
+    mmCtx.translate(cx, cy);
+    mmCtx.rotate(-carAngle * Math.PI / 180);
+    mmCtx.fillStyle = '#00ff00';
+    mmCtx.beginPath();
+    mmCtx.moveTo(0, -7); mmCtx.lineTo(-4, 5); mmCtx.lineTo(4, 5);
+    mmCtx.closePath(); mmCtx.fill();
+    mmCtx.restore();
+  }
+
+  // ─── WATER ANIMATION ───
+  let waterTime = 0;
+
+  // ─── CAMERA STATE ───
+  const camOffset = new pc.Vec3(0, 5, -12);
+  const camTarget = new pc.Vec3();
+  const smoothCamPos = new pc.Vec3(0, 10, -15);
+
+  // ─── MAIN UPDATE ───
+  let lastChunkX = 9999, lastChunkZ = 9999;
+  let frameCount = 0;
+
+  app.on('update', (dt) => {
+    frameCount++;
+    dt = Math.min(dt, 0.05);
+
+    // 入力
+    if (keys['ArrowUp'] || keys['KeyW']) inputState.accel = true;
+    else if (!document.getElementById('btn-accel').classList.contains('active')) inputState.accel = false;
+    if (keys['ArrowDown'] || keys['KeyS']) inputState.brake = true;
+    else if (!document.getElementById('btn-brake').classList.contains('active')) inputState.brake = false;
+    if (keys['ArrowLeft'] || keys['KeyA']) inputState.left = true;
+    else if (!document.getElementById('btn-left').classList.contains('active')) inputState.left = false;
+    if (keys['ArrowRight'] || keys['KeyD'] && inputState.gear!=='D') inputState.right = true;
+    else if (!document.getElementById('btn-right').classList.contains('active')) inputState.right = false;
+
+    // プレイヤー車両物理
+    if (inputState.accel) accelTime += dt;
+    else accelTime = Math.max(0, accelTime - dt * 2);
+
+    const accelRatio = Math.min(accelTime / 1.5, 1);
+    const MAX_FORCE = 6000;
+    const MAX_BRAKE = 80;
+    const MAX_STEER = 0.55;
+
+    const vel = chassisBody.getLinearVelocity();
+    const speed = Math.sqrt(vel.x()*vel.x() + vel.z()*vel.z()); // m/s
+    const speedKmh = speed * 3.6;
+
+    // RPM計算
+    const gearRatios = [0, 3.8, 2.2, 1.6, 1.2, 1.0];
+    const gearIdx = Math.min(Math.floor(speedKmh / 40) + 1, 5);
+    rpm = Math.min(7000, accelRatio * 3000 + speed * gearRatios[gearIdx] * 200);
+
+    if (inputState.gear === 'D') {
+      engineForce = inputState.accel ? accelRatio * MAX_FORCE * (1 - speed/70) : 0;
+    } else if (inputState.gear === 'R') {
+      engineForce = inputState.accel ? -accelRatio * MAX_FORCE * 0.4 * (1 - speed/20) : 0;
+    } else {
+      engineForce = 0;
+    }
+
+    // ブレーキ
+    if (inputState.brake) {
+      brakeForce = Math.min(brakeForce + dt * 200, MAX_BRAKE);
+    } else {
+      brakeForce = Math.max(brakeForce - dt * 300, 0);
+    }
+
+    // バーンアウト判定
+    const isBurnout = inputState.accel && inputState.brake && speed < 5;
+
+    // ステアリング
+    const steerTarget = inputState.left ? MAX_STEER : inputState.right ? -MAX_STEER : 0;
+    steerVal += (steerTarget - steerVal) * Math.min(1, dt * 5);
+
+    // タイヤ摩擦（高速ドリフト）
+    const frictionFront = 1.8;
+    const frictionRear = Math.max(0.6, 1.8 - speed * 0.01 - (isBurnout ? 1.0 : 0));
+
+    for (let i = 0; i < 4; i++) {
+      playerVehicle.setSteeringValue(i < 2 ? steerVal : 0, i);
+      const f = (i >= 2) ? engineForce : 0; // 後輪駆動
+      playerVehicle.applyEngineForce(f, i);
+      playerVehicle.setBraking(inputState.brake ? brakeForce : (inputState.accel ? 0 : 5), i);
+      const wi = playerVehicle.getWheelInfo(i);
+      wi.set_m_frictionSlip(i < 2 ? frictionFront : frictionRear);
+    }
+
+    // エアブレーキ（高速時ブレーキ → スリップ）
+    if (inputState.brake && speedKmh > 60) {
+      chassisBody.applyImpulse(
+        new Ammo.btVector3(vel.x()*-0.02, 0, vel.z()*-0.02),
+        new Ammo.btVector3(0, 0, 0)
+      );
+    }
+
+    // 物理ステップ
+    physWorld.stepSimulation(dt, 2, 1/60);
+
+    // プレイヤー位置更新
+    const { pos: carPos, rot: carRot } = getBodyTransform(chassisBody);
+
+    // ホイール更新
+    for (let i = 0; i < 4; i++) {
+      playerVehicle.updateWheelTransform(i, true);
+      const wt = playerVehicle.getWheelTransformWS(i);
+      const wo = wt.getOrigin();
+      const wq = wt.getRotation();
+      if (wheelEntities[i]) {
+        wheelEntities[i].setPosition(wo.x(), wo.y(), wo.z());
+        // タイヤ回転
+        const angle = playerVehicle.getWheelInfo(i).get_m_rotation();
+        wheelEntities[i].setEulerAngles(0, 0, angle * 180 / Math.PI);
+      }
+    }
+
+    // 車体エンティティ更新
+    carBodyE.setPosition(carPos);
+    carBodyE.setRotation(carRot);
+
+    // スキッドマーク
+    const isSlipping = (frictionRear < 1.0 && speedKmh > 10) || isBurnout;
+    if (isSlipping && frameCount % 4 === 0) {
+      const carAngle = carBodyE.getEulerAngles().y;
+      addSkidMark(new pc.Vec3(carPos.x, carPos.y - 0.35, carPos.z), carAngle);
+    }
+
+    // ─ NPC AI ─
+    if (frameCount % 3 === 0) {
+      const toRemove = [];
+      npcs.forEach(npc => {
+        const npcTr = new Ammo.btTransform();
+        npc.body.getMotionState().getWorldTransform(npcTr);
+        const no = npcTr.getOrigin();
+        const nq2 = npcTr.getRotation();
+        const np2 = new pc.Vec3(no.x(), no.y(), no.z());
+
+        const dist = np2.distance(carPos);
+        if (dist > 300 || np2.y < -30) {
+          toRemove.push(npc);
+          return;
+        }
+
+        const dx = npc.waypoint.x - np2.x;
+        const dz = npc.waypoint.z - np2.z;
+        const d = Math.sqrt(dx*dx+dz*dz);
+        if (d < 15) {
+          npc.waypoint.set(
+            np2.x + (Math.random()-0.5)*200,
+            0,
+            np2.z + (Math.random()-0.5)*200
+          );
+        }
+
+        const targetAngle = Math.atan2(dx, dz);
+        // 車体の現在向き
+        const npcFwdX = 2 * (nq2.x() * nq2.z() + nq2.w() * nq2.y());
+        const npcFwdZ = 1 - 2 * (nq2.x() * nq2.x() + nq2.y() * nq2.y());
+        const curAngle = Math.atan2(npcFwdX, npcFwdZ);
+        let steerDiff = targetAngle - curAngle;
+        while (steerDiff > Math.PI) steerDiff -= Math.PI * 2;
+        while (steerDiff < -Math.PI) steerDiff += Math.PI * 2;
+        const npcSteer = Math.max(-0.45, Math.min(0.45, steerDiff * 0.5));
+
+        const nv = npc.body.getLinearVelocity();
+        const nvSpd = Math.sqrt(nv.x()*nv.x()+nv.z()*nv.z());
+        const maxNpcSpd = 14;
+
+        for (let i = 0; i < 4; i++) {
+          npc.vehicle.setSteeringValue(i < 2 ? npcSteer : 0, i);
+          npc.vehicle.applyEngineForce(i >= 2 ? (nvSpd < maxNpcSpd ? npc.speed * 0.6 : 0) : 0, i);
+          npc.vehicle.setBraking(2, i);
+          npc.vehicle.updateWheelTransform(i, true);
+        }
+        physWorld.stepSimulation && null; // 個別stepは不要
+
+        npc.entity.setPosition(np2.x, np2.y, np2.z);
+        npc.entity.setRotation(new pc.Quat(nq2.x(), nq2.y(), nq2.z(), nq2.w()));
+      });
+
+      toRemove.forEach(npc => {
+        try { physWorld.removeAction(npc.vehicle); } catch(e) {}
+        try { physWorld.removeRigidBody(npc.body); } catch(e) {}
+        try { npc.entity.destroy(); } catch(e) {}
+        const idx = npcs.indexOf(npc);
+        if (idx >= 0) npcs.splice(idx, 1);
+      });
+    }
+
+    // ─ チャンク管理 ─
+    const cx = Math.floor(carPos.x / CHUNK_SIZE);
+    const cz = Math.floor(carPos.z / CHUNK_SIZE);
+
+    if (cx !== lastChunkX || cz !== lastChunkZ) {
+      lastChunkX = cx; lastChunkZ = cz;
+
+      // 生成
+      for (let dx = -CHUNK_RENDER_DIST; dx <= CHUNK_RENDER_DIST; dx++) {
+        for (let dz = -CHUNK_RENDER_DIST; dz <= CHUNK_RENDER_DIST; dz++) {
+          createChunk(cx + dx, cz + dz);
+        }
+      }
+      // 物理
+      for (let dx = -CHUNK_PHYSICS_DIST; dx <= CHUNK_PHYSICS_DIST; dx++) {
+        for (let dz = -CHUNK_PHYSICS_DIST; dz <= CHUNK_PHYSICS_DIST; dz++) {
+          createChunkPhysics(cx + dx, cz + dz);
+        }
+      }
+
+      // 削除
+      chunks.forEach((ents, key) => {
+        const [kcx, kcz] = key.split(',').map(Number);
+        if (Math.abs(kcx - cx) > CHUNK_RENDER_DIST + 1 || Math.abs(kcz - cz) > CHUNK_RENDER_DIST + 1) {
+          removeChunk(key);
+        }
+      });
+      chunkPhysBodies.forEach((body, key) => {
+        const [kcx, kcz] = key.split(',').map(Number);
+        if (Math.abs(kcx - cx) > CHUNK_PHYSICS_DIST + 1 || Math.abs(kcz - cz) > CHUNK_PHYSICS_DIST + 1) {
+          removeChunkPhysics(key);
+        }
+      });
+
+      // NPC生成
+      if (npcs.length < MAX_NPCS && frameCount % 10 === 0) {
+        const spawnDist = 80 + Math.random() * 80;
+        const angle = Math.random() * Math.PI * 2;
+        const sx = carPos.x + Math.cos(angle) * spawnDist;
+        const sz = carPos.z + Math.sin(angle) * spawnDist;
+        createNPC(sx, getHeight(sx, sz), sz);
+      }
+    }
+
+    // ─ カメラ ─
+    const carEuler = carBodyE.getEulerAngles();
+    const camAngle = carEuler.y * Math.PI / 180;
+
+    const desiredCamX = carPos.x + Math.sin(camAngle) * 14 + Math.cos(camAngle) * 0;
+    const desiredCamZ = carPos.z + Math.cos(camAngle) * 14;
+    const desiredCamY = carPos.y + 6;
+
+    const lerpSpeed = 5;
+    smoothCamPos.x += (desiredCamX - smoothCamPos.x) * Math.min(1, dt * lerpSpeed);
+    smoothCamPos.y += (desiredCamY - smoothCamPos.y) * Math.min(1, dt * lerpSpeed * 0.5);
+    smoothCamPos.z += (desiredCamZ - smoothCamPos.z) * Math.min(1, dt * lerpSpeed);
+
+    cameraE.setPosition(smoothCamPos);
+    cameraE.lookAt(carPos.x, carPos.y + 1, carPos.z);
+
+    // ─ 水面UV アニメーション ─
+    waterTime += dt;
+    // 全エンティティから水面を探してアニメーション
+    // (軽量化のため毎フレームは行わない)
+
+    // ─ 音 ─
+    if (audioCtx && engineNode) {
+      const targetFreq = 60 + (rpm / 7000) * 180;
+      engineNode.frequency.setTargetAtTime(targetFreq, audioCtx.currentTime, 0.1);
+      engineGain.gain.setTargetAtTime(0.04 + accelRatio * 0.06, audioCtx.currentTime, 0.05);
+
+      const slipAmount = isSlipping ? 0.06 : 0;
+      slipGain.gain.setTargetAtTime(slipAmount, audioCtx.currentTime, 0.1);
+    }
+
+    // ─ HUD更新 ─
+    if (frameCount % 2 === 0) {
+      document.getElementById('speed-value').textContent = Math.floor(speedKmh);
+      document.getElementById('rpm-bar').style.width = (rpm / 7000 * 100) + '%';
+      document.getElementById('pos-info').textContent = `POS: ${Math.floor(carPos.x)}, ${Math.floor(carPos.z)}`;
+      document.getElementById('chunk-info').textContent = `CHUNKS: ${chunks.size}`;
+      document.getElementById('npc-info').textContent = `NPCs: ${npcs.length} | FPS: ${Math.round(1/Math.max(dt,0.001))}`;
+      drawMinimap(carPos, carEuler.y);
+    }
+
+    // 車がひっくり返った場合のリセット
+    if (carPos.y < -20 || (Math.abs(carBodyE.getEulerAngles().x) > 80 && speed < 1)) {
+      const tr = new Ammo.btTransform();
+      tr.setIdentity();
+      tr.setOrigin(new Ammo.btVector3(carPos.x, getHeight(carPos.x, carPos.z) + 3, carPos.z));
+      const q = new Ammo.btQuaternion(0, 0, 0, 1);
+      tr.setRotation(q);
+      chassisBody.setWorldTransform(tr);
+      chassisBody.setLinearVelocity(new Ammo.btVector3(0,0,0));
+      chassisBody.setAngularVelocity(new Ammo.btVector3(0,0,0));
+      chassisBody.activate();
+    }
+  });
+
+  // ─── 初期チャンク生成 ───
+  for (let dx = -CHUNK_RENDER_DIST; dx <= CHUNK_RENDER_DIST; dx++) {
+    for (let dz = -CHUNK_RENDER_DIST; dz <= CHUNK_RENDER_DIST; dz++) {
+      createChunk(dx, dz);
+      if (Math.abs(dx) <= 1 && Math.abs(dz) <= 1) createChunkPhysics(dx, dz);
+    }
+  }
+
+  // 最初のNPC
+  for (let i = 0; i < 4; i++) {
+    createNPC(40 + i * 20, 3, 30 + i * 15);
+  }
+
+  console.log('Game initialized!');
+}
+</script>
+</body>
+</html>
