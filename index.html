@@ -9,59 +9,92 @@
 html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:Arial,sans-serif}
 #c{width:100%;height:100%;display:block;touch-action:none}
 #hud{position:fixed;inset:0;pointer-events:none;z-index:10}
+
+/* ── スピードメーター（右下） ── */
 #spedo{
-  position:absolute;bottom:20px;right:20px;
-  background:rgba(0,0,0,.75);border:2px solid #f60;
-  border-radius:12px;padding:10px 16px;color:#fff;text-align:center;min-width:110px
+  position:absolute;bottom:180px;right:12px;
+  background:rgba(0,0,0,.78);border:2px solid #f60;
+  border-radius:12px;padding:8px 14px;color:#fff;text-align:center;min-width:100px
 }
-#spd{font-size:38px;font-weight:700;color:#f60;line-height:1}
-#sunit{font-size:11px;color:#aaa}
-#rpmwrap{width:100%;background:#333;border-radius:4px;height:7px;margin-top:6px}
-#rpmbar{height:7px;background:linear-gradient(90deg,#0f0,#ff0,#f00);border-radius:4px;width:0%}
-#geardsp{font-size:26px;font-weight:700;color:#fff;margin-top:4px}
+#spd{font-size:34px;font-weight:700;color:#f60;line-height:1}
+#sunit{font-size:10px;color:#aaa}
+#rpmwrap{width:100%;background:#333;border-radius:4px;height:6px;margin-top:5px}
+#rpmbar{height:6px;background:linear-gradient(90deg,#0f0,#ff0,#f00);border-radius:4px;width:0%}
+#geardsp{font-size:22px;font-weight:700;color:#fff;margin-top:3px}
+
+/* ── 縦画面コントローラー ── */
 #ctrl{
-  position:absolute;bottom:0;left:0;right:0;
-  display:flex;justify-content:space-between;padding:14px;pointer-events:auto
+  position:absolute;bottom:0;left:0;right:0;height:170px;
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  align-items:center;
+  padding:10px 16px;
+  pointer-events:auto;
+  background:linear-gradient(transparent,rgba(0,0,0,.35));
 }
-.bg{display:flex;flex-direction:column;gap:8px;align-items:center}
-.sg{display:flex;flex-direction:row;gap:10px;align-items:center}
 .btn{
-  width:68px;height:68px;border-radius:50%;
-  border:3px solid rgba(255,255,255,.35);background:rgba(0,0,0,.5);
+  width:64px;height:64px;border-radius:50%;
+  border:2.5px solid rgba(255,255,255,.35);background:rgba(0,0,0,.5);
   color:#fff;font-size:22px;display:flex;align-items:center;justify-content:center;
   cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;
-  backdrop-filter:blur(4px);font-weight:700;transition:background .1s,border-color .1s
+  backdrop-filter:blur(4px);font-weight:700;touch-action:none;
+  transition:background .08s,border-color .08s
 }
-.btn.act{background:rgba(255,102,0,.65);border-color:#f60}
-#bacc{width:78px;height:78px;font-size:28px;background:rgba(0,170,0,.45);border-color:#0c0}
-#bbrk{background:rgba(170,0,0,.45);border-color:#c00}
-.gbtn{width:48px;height:48px;border-radius:8px;font-size:15px}
+.btn.act{background:rgba(255,102,0,.7);border-color:#f60}
+#bacc{width:72px;height:72px;font-size:28px;background:rgba(0,160,0,.5);border-color:#0c0}
+#bbrk{background:rgba(160,0,0,.5);border-color:#c00}
+
+/* 左：ステア */
+#left-area{display:flex;gap:10px;justify-content:flex-start;align-items:center}
+/* 中：アクセル・ブレーキ */
+#mid-area{display:flex;flex-direction:column;gap:8px;align-items:center}
+/* 右：ギア */
+#right-area{display:flex;flex-direction:column;gap:5px;align-items:flex-end}
+.gbtn{width:46px;height:46px;border-radius:8px;font-size:14px;font-weight:700}
+
+/* ── 情報表示 ── */
 #info{
-  position:absolute;top:10px;left:10px;
+  position:absolute;top:8px;left:8px;
   background:rgba(0,0,0,.6);border:1px solid #f60;
-  border-radius:8px;padding:7px 11px;color:#fff;font-size:12px;line-height:1.6
+  border-radius:8px;padding:5px 10px;color:#fff;font-size:11px;line-height:1.5
 }
+/* ── ミニマップ ── */
 #mmap{
-  position:absolute;top:10px;right:10px;
-  width:120px;height:120px;border:2px solid #f60;
+  position:absolute;top:8px;right:8px;
+  width:100px;height:100px;border:2px solid #f60;
   border-radius:50%;overflow:hidden
 }
 #mmcv{width:100%;height:100%}
+
+/* ── ローディング ── */
 #loading{
-  position:fixed;inset:0;background:#000;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100
+  position:fixed;inset:0;background:#111;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200
 }
-#loading h1{font-size:46px;color:#f60;letter-spacing:4px;margin-bottom:8px}
-#loading p{color:#aaa;font-size:15px;margin-bottom:24px}
-#pgwrap{width:280px;background:#222;border-radius:20px;height:7px}
-#pgbar{height:7px;background:#f60;border-radius:20px;width:0%;transition:width .3s}
+#loading h1{font-size:40px;color:#f60;letter-spacing:4px;margin-bottom:6px}
+#loading p{color:#aaa;font-size:14px;margin-bottom:20px}
+#pgwrap{width:260px;background:#222;border-radius:20px;height:6px}
+#pgbar{height:6px;background:#f60;border-radius:20px;width:0%;transition:width .25s}
+#glb-input-wrap{margin-top:18px;color:#888;font-size:12px;text-align:center}
+#glb-input{display:none}
+#glb-label{
+  display:inline-block;margin-top:6px;padding:7px 18px;
+  background:#333;border:1px solid #f60;border-radius:6px;
+  color:#f60;cursor:pointer;font-size:13px
+}
 </style>
 </head>
 <body>
+
 <div id="loading">
   <h1>STREET RACER</h1>
-  <p>Initializing engine...</p>
+  <p id="ldmsg">Loading PlayCanvas...</p>
   <div id="pgwrap"><div id="pgbar"></div></div>
+  <div id="glb-input-wrap">
+    <div>車のGLBモデルを読み込む（任意）</div>
+    <label id="glb-label" for="glb-input">📁 GLBファイルを選択</label>
+    <input type="file" id="glb-input" accept=".glb,.gltf">
+  </div>
 </div>
 
 <canvas id="c"></canvas>
@@ -70,9 +103,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:Ari
   <div id="info">
     <div id="ipos">POS: 0, 0</div>
     <div id="ichk">CHUNKS: 0</div>
-    <div id="inpc">NPCs: 0</div>
+    <div id="inpc">NPCs: 0 | FPS: 0</div>
   </div>
-  <div id="mmap"><canvas id="mmcv" width="120" height="120"></canvas></div>
+  <div id="mmap"><canvas id="mmcv" width="100" height="100"></canvas></div>
   <div id="spedo">
     <div id="spd">0</div>
     <div id="sunit">km/h</div>
@@ -80,17 +113,15 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:Ari
     <div id="geardsp">D</div>
   </div>
   <div id="ctrl">
-    <div class="bg">
-      <div class="sg">
-        <div class="btn" id="blft">◀</div>
-        <div class="btn" id="brgt">▶</div>
-      </div>
+    <div id="left-area">
+      <div class="btn" id="blft">◀</div>
+      <div class="btn" id="brgt">▶</div>
     </div>
-    <div class="bg">
+    <div id="mid-area">
       <div class="btn" id="bacc">▲</div>
       <div class="btn" id="bbrk">■</div>
     </div>
-    <div class="bg" style="gap:5px">
+    <div id="right-area">
       <div class="btn gbtn" id="bd">D</div>
       <div class="btn gbtn" id="br">R</div>
       <div class="btn gbtn" id="bn">N</div>
@@ -100,10 +131,13 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:Ari
 
 <script>
 // =====================================================================
-// UTILITY
+//  ユーティリティ
 // =====================================================================
-function setPg(p){ document.getElementById('pgbar').style.width=p+'%' }
-
+const $=id=>document.getElementById(id);
+function setPg(p,$msg){
+  $('pgbar').style.width=p+'%';
+  if($msg)$('ldmsg').textContent=$msg;
+}
 function loadScript(src){
   return new Promise((res,rej)=>{
     const s=document.createElement('script');
@@ -113,74 +147,68 @@ function loadScript(src){
 }
 
 // =====================================================================
-// CANVAS TEXTURE GENERATOR
+//  GLBファイル選択（ユーザー任意）
 // =====================================================================
-function makeTex(gl, w, h, drawFn, repeat=true){
-  const cv=document.createElement('canvas');
-  cv.width=w; cv.height=h;
-  const ctx=cv.getContext('2d');
-  drawFn(ctx,w,h);
-
-  const tex=gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D,tex);
-  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,cv);
-  gl.generateMipmap(gl.TEXTURE_2D);
-  const wrap=repeat?gl.REPEAT:gl.CLAMP_TO_EDGE;
-  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,wrap);
-  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,wrap);
-  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
-  return tex;
-}
-
-// =====================================================================
-// MAIN
-// =====================================================================
-async function main(){
-  setPg(20);
-  // PlayCanvasのみ
-  await loadScript('https://code.playcanvas.com/playcanvas-stable.min.js');
-  setPg(80);
-  initGame();
-  setPg(100);
-  setTimeout(()=>{ document.getElementById('loading').style.display='none'; },400);
-}
-
-main().catch(e=>{
-  document.getElementById('loading').innerHTML=
-    '<h1 style="color:red">Error</h1><p style="color:#f88">'+e.message+'</p><p style="color:#aaa;font-size:12px">'+e.stack+'</p>';
+let userGlbUrl=null; // objectURL or null
+$('glb-input').addEventListener('change',e=>{
+  const f=e.target.files[0];
+  if(!f)return;
+  userGlbUrl=URL.createObjectURL(f);
+  $('glb-label').textContent='✅ '+f.name;
 });
 
 // =====================================================================
-// NOISE
+//  MAIN
 // =====================================================================
-function noise2(x,z,s=1){
-  const a=Math.sin(x*127.1+s)*43758.5453;
-  const b=Math.sin(z*311.7+s)*43758.5453;
-  return(Math.sin(a+b)+1)*0.5;
+async function main(){
+  setPg(10,'Loading PlayCanvas...');
+  await loadScript('https://code.playcanvas.com/playcanvas-stable.min.js');
+  setPg(60,'Initializing game...');
+  // 少し待ってGLB選択の猶予を与える
+  await new Promise(r=>setTimeout(r,800));
+  setPg(90,'Building world...');
+  initGame();
 }
-function snoise(x,z,sc=0.008){
+main().catch(e=>{
+  $('loading').innerHTML=`<h2 style="color:red">Error</h2><pre style="color:#f88;font-size:11px">${e.stack||e}</pre>`;
+});
+
+// =====================================================================
+//  NOISE
+// =====================================================================
+function n2(x,z,s=1){
+  return(Math.sin(x*127.1+s)*43758.5453+Math.sin(z*311.7+s*1.3)*43758.5453)%1;
+}
+function sn(x,z,sc=0.008){
   const ix=Math.floor(x*sc),iz=Math.floor(z*sc);
-  const fx=x*sc-ix,fz=z*sc-iz;
+  const fx=(x*sc-ix),fz=(z*sc-iz);
   const ux=fx*fx*(3-2*fx),uz=fz*fz*(3-2*fz);
-  const a=noise2(ix,iz),b=noise2(ix+1,iz);
-  const c=noise2(ix,iz+1),d=noise2(ix+1,iz+1);
+  const a=(n2(ix,iz)+1)%1,b=(n2(ix+1,iz)+1)%1;
+  const c=(n2(ix,iz+1)+1)%1,d=(n2(ix+1,iz+1)+1)%1;
   return a*(1-ux)*(1-uz)+b*ux*(1-uz)+c*(1-ux)*uz+d*ux*uz;
 }
 function getH(x,z){
-  // 道路（X方向・Z方向グリッド）は平坦に
-  const rx=Math.abs(((x%200)+200)%200-100); // 0=道路中心
-  const rz=Math.abs(((z%200)+200)%200-100);
-  const roadMask=Math.max(0,1-Math.min(rx,rz)/18);
-  const h=snoise(x,z)*14-3;
-  return h*(1-roadMask*0.95);
+  // 道路網（200m間隔グリッド）は平坦
+  const mx=((x%200)+200)%200; // 0-200
+  const mz=((z%200)+200)%200;
+  const distX=Math.min(mx,200-mx);  // 道路中心0からの距離
+  const distZ=Math.min(mz,200-mz);
+  const onRoadX=distZ<11; // Z方向の道路（X軸平行）
+  const onRoadZ=distX<11; // X方向の道路（Z軸平行）
+  const roadMask=onRoadX||onRoadZ?1:0;
+  const smoothMask=Math.max(
+    Math.max(0,1-Math.min(mz,200-mz)/18),
+    Math.max(0,1-Math.min(mx,200-mx)/18)
+  );
+  const h=sn(x,z)*12-2+sn(x,z,0.025)*3;
+  return h*(1-smoothMask*.97);
 }
 
 // =====================================================================
-// GAME INIT
+//  GAME
 // =====================================================================
 function initGame(){
-  const canvas=document.getElementById('c');
+  const canvas=$('c');
   const app=new pc.Application(canvas,{
     mouse:new pc.Mouse(canvas),
     touch:new pc.TouchDevice(canvas),
@@ -191,895 +219,695 @@ function initGame(){
   app.setCanvasResolution(pc.RESOLUTION_AUTO);
   app.start();
 
-  // ----------------------------------------------------------------
-  // TEXTURE MAKERS (using PlayCanvas Texture API)
-  // ----------------------------------------------------------------
+  // ── テクスチャ生成ヘルパー ──
   function pcTex(w,h,drawFn,rep=true){
     const cv=document.createElement('canvas');
     cv.width=w;cv.height=h;
-    const ctx=cv.getContext('2d');
-    drawFn(ctx,w,h);
+    drawFn(cv.getContext('2d'),w,h);
     const t=new pc.Texture(app.graphicsDevice,{
-      width:w,height:h,
-      format:pc.PIXELFORMAT_R8_G8_B8_A8,
-      mipmaps:true,
-      minFilter:pc.FILTER_LINEAR_MIPMAP_LINEAR,
-      magFilter:pc.FILTER_LINEAR,
+      width:w,height:h,format:pc.PIXELFORMAT_R8_G8_B8_A8,mipmaps:true,
+      minFilter:pc.FILTER_LINEAR_MIPMAP_LINEAR,magFilter:pc.FILTER_LINEAR,
       addressU:rep?pc.ADDRESS_REPEAT:pc.ADDRESS_CLAMP_TO_EDGE,
       addressV:rep?pc.ADDRESS_REPEAT:pc.ADDRESS_CLAMP_TO_EDGE
     });
-    t.setSource(cv);
-    return t;
+    t.setSource(cv);return t;
   }
 
+  // ── テクスチャ定義 ──
   // アスファルト
-  const tAsphalt=pcTex(256,256,(ctx,w,h)=>{
+  const TX_ASPHALT=pcTex(256,256,(ctx,w,h)=>{
     ctx.fillStyle='#252525';ctx.fillRect(0,0,w,h);
-    for(let i=0;i<5000;i++){
-      const v=20+Math.random()*35;
-      ctx.fillStyle=`rgb(${v},${v},${v})`;
-      ctx.fillRect(Math.random()*w,Math.random()*h,2,2);
-    }
-    // センターライン
-    ctx.strokeStyle='#ddbb00';ctx.lineWidth=5;
-    ctx.setLineDash([36,28]);
+    for(let i=0;i<5000;i++){const v=18+Math.random()*32;ctx.fillStyle=`rgb(${v},${v},${v})`;ctx.fillRect(Math.random()*w,Math.random()*h,2,2);}
+    ctx.strokeStyle='#ddbb00';ctx.lineWidth=5;ctx.setLineDash([36,28]);
     ctx.beginPath();ctx.moveTo(w/2,0);ctx.lineTo(w/2,h);ctx.stroke();
-    // 白線
-    ctx.strokeStyle='#ddd';ctx.lineWidth=2;ctx.setLineDash([18,18]);
-    [w/4,3*w/4].forEach(x=>{
-      ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();
-    });
+    ctx.strokeStyle='#ccc';ctx.lineWidth=2;ctx.setLineDash([16,18]);
+    [w/4,3*w/4].forEach(x=>{ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();});
   });
-
-  // 草
-  const tGrass=pcTex(256,256,(ctx,w,h)=>{
-    ctx.fillStyle='#2d5a1e';ctx.fillRect(0,0,w,h);
-    for(let i=0;i<600;i++){
-      const v=Math.random()*35;
-      ctx.fillStyle=`rgb(${35+v},${75+v},${25+v})`;
-      ctx.fillRect(Math.random()*w,Math.random()*h,2,3);
-    }
-    for(let i=0;i<80;i++){
-      ctx.fillStyle='rgba(90,60,30,.28)';
-      ctx.beginPath();
-      ctx.arc(Math.random()*w,Math.random()*h,3+Math.random()*5,0,Math.PI*2);
-      ctx.fill();
-    }
-  });
-
-  // コンクリート
-  const tConcrete=pcTex(256,512,(ctx,w,h)=>{
-    ctx.fillStyle='#7a7a7a';ctx.fillRect(0,0,w,h);
-    ctx.strokeStyle='#5e5e5e';ctx.lineWidth=1.5;
-    const bh=42,bw=58;
-    for(let y=0;y<h;y+=bh){
-      const off=Math.floor(y/bh)%2*bw/2;
-      for(let x=-off;x<w;x+=bw) ctx.strokeRect(x+1,y+1,bw-2,bh-2);
-    }
-    for(let i=0;i<2500;i++){
-      const v=90+Math.random()*40;
-      ctx.globalAlpha=.25;ctx.fillStyle=`rgb(${v},${v},${v})`;
-      ctx.fillRect(Math.random()*w,Math.random()*h,2,2);
-    }
+  // コンクリート地面
+  const TX_CONCRETE=pcTex(256,256,(ctx,w,h)=>{
+    ctx.fillStyle='#888';ctx.fillRect(0,0,w,h);
+    ctx.strokeStyle='#666';ctx.lineWidth=1.5;
+    for(let y=0;y<h;y+=40)for(let x=0;x<w;x+=60)ctx.strokeRect(x+1,y+1,58,38);
+    for(let i=0;i<2000;i++){const v=100+Math.random()*40;ctx.globalAlpha=.18;ctx.fillStyle=`rgb(${v},${v},${v})`;ctx.fillRect(Math.random()*w,Math.random()*h,2,2);}
     ctx.globalAlpha=1;
   });
-
-  // ガラスビル
-  const tGlass=pcTex(256,512,(ctx,w,h)=>{
+  // ビル壁
+  const TX_WALL_A=pcTex(256,512,(ctx,w,h)=>{
+    ctx.fillStyle='#7a7a7a';ctx.fillRect(0,0,w,h);
+    ctx.strokeStyle='#5e5e5e';ctx.lineWidth=1.5;
+    for(let y=0;y<h;y+=42){const off=Math.floor(y/42)%2*29;for(let x=-off;x<w;x+=58)ctx.strokeRect(x+1,y+1,56,40);}
+    for(let i=0;i<2500;i++){const v=90+Math.random()*40;ctx.globalAlpha=.2;ctx.fillStyle=`rgb(${v},${v},${v})`;ctx.fillRect(Math.random()*w,Math.random()*h,2,2);}
+    ctx.globalAlpha=1;
+  });
+  const TX_WALL_B=pcTex(256,512,(ctx,w,h)=>{
     const g=ctx.createLinearGradient(0,0,w,h);
-    g.addColorStop(0,'#162e4a');g.addColorStop(1,'#1e4f78');
+    g.addColorStop(0,'#152e4a');g.addColorStop(1,'#1c4a72');
     ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
     const ww=34,wh=24,gap=7;
-    for(let y=gap;y<h-wh;y+=wh+gap){
-      for(let x=gap;x<w-ww;x+=ww+gap){
-        const r=Math.random();
-        ctx.fillStyle=r<.55?`rgba(255,235,160,${.25+Math.random()*.5})`:'rgba(30,70,110,.8)';
-        ctx.fillRect(x,y,ww-2,wh-2);
-        ctx.strokeStyle='rgba(180,210,255,.25)';ctx.lineWidth=1;
-        ctx.strokeRect(x,y,ww-2,wh-2);
-      }
+    for(let y=gap;y<h-wh;y+=wh+gap)for(let x=gap;x<w-ww;x+=ww+gap){
+      const r=Math.random();
+      ctx.fillStyle=r<.55?`rgba(255,235,155,${.22+Math.random()*.52})`:'rgba(28,65,105,.8)';
+      ctx.fillRect(x,y,ww-2,wh-2);
+      ctx.strokeStyle='rgba(170,205,255,.22)';ctx.lineWidth=1;ctx.strokeRect(x,y,ww-2,wh-2);
     }
   });
-
   // 水面
-  const tWater=pcTex(256,256,(ctx,w,h)=>{
+  const TX_WATER=pcTex(256,256,(ctx,w,h)=>{
     const g=ctx.createLinearGradient(0,0,0,h);
-    g.addColorStop(0,'#0a3360');g.addColorStop(.5,'#154e8c');g.addColorStop(1,'#0a4070');
+    g.addColorStop(0,'#0a3360');g.addColorStop(.5,'#144e8a');g.addColorStop(1,'#0a3f6e');
     ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
-    ctx.strokeStyle='rgba(90,170,255,.35)';ctx.lineWidth=1.5;
-    for(let i=0;i<9;i++){
-      const y=(i/9)*h;
-      ctx.beginPath();
-      for(let x=0;x<w;x+=4){
-        const wy=y+Math.sin((x/w)*Math.PI*7+i)*5;
-        x===0?ctx.moveTo(x,wy):ctx.lineTo(x,wy);
-      }
-      ctx.stroke();
-    }
-    for(let i=0;i<28;i++){
-      ctx.fillStyle='rgba(200,230,255,.25)';
-      ctx.beginPath();
-      ctx.ellipse(Math.random()*w,Math.random()*h,8+Math.random()*22,3,0,0,Math.PI*2);
-      ctx.fill();
-    }
+    ctx.strokeStyle='rgba(80,160,255,.32)';ctx.lineWidth=1.5;
+    for(let i=0;i<9;i++){const y=(i/9)*h;ctx.beginPath();for(let x=0;x<w;x+=4){const wy=y+Math.sin((x/w)*Math.PI*7+i)*5;x===0?ctx.moveTo(x,wy):ctx.lineTo(x,wy);}ctx.stroke();}
+    for(let i=0;i<25;i++){ctx.fillStyle='rgba(190,225,255,.22)';ctx.beginPath();ctx.ellipse(Math.random()*w,Math.random()*h,7+Math.random()*20,3,0,0,Math.PI*2);ctx.fill();}
   });
-
   // 屋上
-  const tRoof=pcTex(256,256,(ctx,w,h)=>{
-    ctx.fillStyle='#505050';ctx.fillRect(0,0,w,h);
+  const TX_ROOF=pcTex(256,256,(ctx,w,h)=>{
+    ctx.fillStyle='#4e4e4e';ctx.fillRect(0,0,w,h);
     ctx.strokeStyle='#3a3a3a';ctx.lineWidth=1;
-    for(let i=0;i<w;i+=32) ctx.strokeRect(i,0,32,h);
-    for(let j=0;j<h;j+=32) ctx.strokeRect(0,j,w,32);
-    for(let i=0;i<5;i++){
-      const x=10+Math.random()*(w-60),y=10+Math.random()*(h-40);
-      ctx.fillStyle='#636363';ctx.fillRect(x,y,20+Math.random()*30,12+Math.random()*18);
-    }
+    for(let i=0;i<w;i+=32)ctx.strokeRect(i,0,32,h);
+    for(let j=0;j<h;j+=32)ctx.strokeRect(0,j,w,32);
+    for(let i=0;i<5;i++){const x=10+Math.random()*(w-60),y=10+Math.random()*(h-40);ctx.fillStyle='#616161';ctx.fillRect(x,y,20+Math.random()*28,11+Math.random()*17);}
   });
-
   // 橋
-  const tBridge=pcTex(256,256,(ctx,w,h)=>{
-    ctx.fillStyle='#7a7a7a';ctx.fillRect(0,0,w,h);
-    ctx.strokeStyle='#666';ctx.lineWidth=3;
+  const TX_BRIDGE=pcTex(256,256,(ctx,w,h)=>{
+    ctx.fillStyle='#787878';ctx.fillRect(0,0,w,h);
+    ctx.strokeStyle='#636363';ctx.lineWidth=3;
     for(let i=0;i<6;i++){ctx.beginPath();ctx.moveTo(0,(i/6)*h);ctx.lineTo(w,(i/6)*h);ctx.stroke();}
-    ctx.strokeStyle='#5a5a5a';ctx.lineWidth=2;
-    for(let i=0;i<6;i++){
-      ctx.beginPath();ctx.moveTo(i*w/5,0);ctx.lineTo((i+1)*w/5,h);ctx.stroke();
-      ctx.beginPath();ctx.moveTo((i+1)*w/5,0);ctx.lineTo(i*w/5,h);ctx.stroke();
-    }
-    for(let i=0;i<150;i++){
-      ctx.fillStyle=`rgba(110,55,18,${.08+Math.random()*.18})`;
-      ctx.fillRect(Math.random()*w,Math.random()*h,4,4);
-    }
+    ctx.strokeStyle='#575757';ctx.lineWidth=2;
+    for(let i=0;i<6;i++){ctx.beginPath();ctx.moveTo(i*w/5,0);ctx.lineTo((i+1)*w/5,h);ctx.stroke();ctx.beginPath();ctx.moveTo((i+1)*w/5,0);ctx.lineTo(i*w/5,h);ctx.stroke();}
+    for(let i=0;i<120;i++){ctx.fillStyle=`rgba(108,52,14,${.07+Math.random()*.16})`;ctx.fillRect(Math.random()*w,Math.random()*h,4,4);}
   });
-
   // スキッドマーク
-  const tSkid=pcTex(64,256,(ctx,w,h)=>{
+  const TX_SKID=pcTex(64,256,(ctx,w,h)=>{
     ctx.clearRect(0,0,w,h);
-    ctx.fillStyle='rgba(8,8,8,.82)';
-    ctx.fillRect(5,0,14,h);ctx.fillRect(w-19,0,14,h);
-    for(let i=0;i<200;i++){
-      const sx=Math.random()<.5?5+Math.random()*14:w-19+Math.random()*14;
-      ctx.fillStyle=`rgba(0,0,0,${.2+Math.random()*.4})`;
-      ctx.fillRect(sx,Math.random()*h,2,3);
-    }
+    ctx.fillStyle='rgba(8,8,8,.8)';ctx.fillRect(4,0,14,h);ctx.fillRect(w-18,0,14,h);
+    for(let i=0;i<180;i++){const sx=Math.random()<.5?4+Math.random()*14:w-18+Math.random()*14;ctx.fillStyle=`rgba(0,0,0,${.2+Math.random()*.4})`;ctx.fillRect(sx,Math.random()*h,2,3);}
   });
-
-  // 車体テクスチャ
+  // 車体
   function tCar(r,g,b){
     return pcTex(128,128,(ctx,w,h)=>{
       const gr=ctx.createLinearGradient(0,0,0,h);
-      gr.addColorStop(0,`rgb(${Math.min(255,r+65)},${Math.min(255,g+65)},${Math.min(255,b+65)})`);
+      gr.addColorStop(0,`rgb(${Math.min(255,r+60)},${Math.min(255,g+60)},${Math.min(255,b+60)})`);
       gr.addColorStop(.5,`rgb(${r},${g},${b})`);
-      gr.addColorStop(1,`rgb(${Math.max(0,r-45)},${Math.max(0,g-45)},${Math.max(0,b-45)})`);
+      gr.addColorStop(1,`rgb(${Math.max(0,r-40)},${Math.max(0,g-40)},${Math.max(0,b-40)})`);
       ctx.fillStyle=gr;ctx.fillRect(0,0,w,h);
-      ctx.fillStyle='rgba(255,255,255,.18)';ctx.fillRect(8,4,w-16,18);
+      ctx.fillStyle='rgba(255,255,255,.16)';ctx.fillRect(8,4,w-16,16);
     },false);
   }
-
-  // タイヤ
-  const tTire=pcTex(64,64,(ctx,w,h)=>{
-    ctx.fillStyle='#1e1e1e';ctx.fillRect(0,0,w,h);
-    ctx.strokeStyle='#404040';ctx.lineWidth=3;
-    for(let i=0;i<8;i++){
-      const a=(i/8)*Math.PI*2;
-      ctx.beginPath();ctx.moveTo(w/2,h/2);
-      ctx.lineTo(w/2+Math.cos(a)*w/2,h/2+Math.sin(a)*h/2);ctx.stroke();
-    }
+  // タイヤサイドウォール
+  const TX_TIRE=pcTex(64,64,(ctx,w,h)=>{
+    ctx.fillStyle='#1a1a1a';ctx.fillRect(0,0,w,h);
+    ctx.strokeStyle='#3a3a3a';ctx.lineWidth=2.5;
+    for(let i=0;i<8;i++){const a=(i/8)*Math.PI*2;ctx.beginPath();ctx.moveTo(w/2,h/2);ctx.lineTo(w/2+Math.cos(a)*w/2,h/2+Math.sin(a)*h/2);ctx.stroke();}
+    ctx.strokeStyle='#555';ctx.lineWidth=4;ctx.beginPath();ctx.arc(w/2,h/2,w/2-4,0,Math.PI*2);ctx.stroke();
   });
 
-  // ----------------------------------------------------------------
-  // MATERIAL HELPER
-  // ----------------------------------------------------------------
-  function mat(tex,tu=1,tv=1){
+  // ── マテリアルヘルパー ──
+  function mat(tex,tu=1,tv=1,rough=.85){
     const m=new pc.StandardMaterial();
-    m.diffuseMap=tex;
-    m.diffuseMapTiling=new pc.Vec2(tu,tv);
-    m.roughness=.82;m.metalness=.04;
-    m.update();return m;
+    m.diffuseMap=tex;m.diffuseMapTiling=new pc.Vec2(tu,tv);
+    m.roughness=rough;m.metalness=.04;m.update();return m;
   }
 
-  // ----------------------------------------------------------------
-  // LIGHTS & SKY
-  // ----------------------------------------------------------------
+  // ── ライト ──
   const sun=new pc.Entity('sun');
-  sun.addComponent('light',{
-    type:'directional',color:new pc.Color(1,.95,.85),intensity:1.5,
-    castShadows:true,shadowBias:.2,shadowResolution:1024
-  });
-  sun.setEulerAngles(45,130,0);
-  app.root.addChild(sun);
+  sun.addComponent('light',{type:'directional',color:new pc.Color(1,.96,.86),intensity:1.6,
+    castShadows:true,shadowBias:.2,shadowResolution:1024,shadowRange:100});
+  sun.setEulerAngles(45,130,0);app.root.addChild(sun);
+  const fill=new pc.Entity('fill');
+  fill.addComponent('light',{type:'directional',color:new pc.Color(.3,.5,.7),intensity:.4});
+  fill.setEulerAngles(-30,0,0);app.root.addChild(fill);
 
-  const amb=new pc.Entity('amb');
-  amb.addComponent('light',{type:'directional',color:new pc.Color(.35,.55,.75),intensity:.45});
-  amb.setEulerAngles(-40,0,0);
-  app.root.addChild(amb);
-
-  // ----------------------------------------------------------------
-  // CAMERA
-  // ----------------------------------------------------------------
+  // ── カメラ ──
   const camE=new pc.Entity('cam');
-  camE.addComponent('camera',{fov:68,nearClip:.5,farClip:600,clearColor:new pc.Color(.52,.72,.92)});
+  camE.addComponent('camera',{fov:65,nearClip:.4,farClip:500,clearColor:new pc.Color(.5,.7,.9)});
   app.root.addChild(camE);
 
-  // ----------------------------------------------------------------
-  // CHUNK SYSTEM
-  // ----------------------------------------------------------------
-  const CSIZ=200, RDIST=2, PDIST=1;
-  const chunkMap=new Map(); // key -> {entities:[]}
-
-  function chKey(cx,cz){return cx+','+cz}
+  // =====================================================================
+  //  チャンクシステム
+  // =====================================================================
+  const CSIZ=200,RDIST=2;
+  const chunkMap=new Map();
 
   function createChunk(cx,cz){
-    const k=chKey(cx,cz);
+    const k=cx+','+cz;
     if(chunkMap.has(k))return;
     const wx=cx*CSIZ,wz=cz*CSIZ;
     const ents=[];
 
-    // --- 地面メッシュ ---
-    const segs=14,step=CSIZ/segs;
-    const pos=[],uvs=[],norms=[],inds=[];
-    for(let zi=0;zi<=segs;zi++){
-      for(let xi=0;xi<=segs;xi++){
+    // 地面メッシュ（コンクリート＋道路で構成）
+    {
+      const segs=14,step=CSIZ/segs;
+      const pos=[],uvs=[],norms=[],inds=[];
+      for(let zi=0;zi<=segs;zi++)for(let xi=0;xi<=segs;xi++){
         const lx=xi*step,lz=zi*step;
         const h=getH(wx+lx,wz+lz);
         pos.push(lx-CSIZ/2,h,lz-CSIZ/2);
-        uvs.push(xi/segs*5,zi/segs*5);
-        norms.push(0,1,0);
+        uvs.push(xi/segs*6,zi/segs*6);norms.push(0,1,0);
       }
-    }
-    for(let zi=0;zi<segs;zi++){
-      for(let xi=0;xi<segs;xi++){
+      for(let zi=0;zi<segs;zi++)for(let xi=0;xi<segs;xi++){
         const i=zi*(segs+1)+xi;
         inds.push(i,i+segs+1,i+1,i+1,i+segs+1,i+segs+2);
       }
-    }
-    // 法線再計算
-    for(let i=0;i<inds.length;i+=3){
-      const [i0,i1,i2]=[inds[i]*3,inds[i+1]*3,inds[i+2]*3];
-      const ax=pos[i1]-pos[i0],ay=pos[i1+1]-pos[i0+1],az=pos[i1+2]-pos[i0+2];
-      const bx=pos[i2]-pos[i0],by=pos[i2+1]-pos[i0+1],bz=pos[i2+2]-pos[i0+2];
-      const nx=ay*bz-az*by,ny=az*bx-ax*bz,nz=ax*by-ay*bx;
-      const ln=Math.sqrt(nx*nx+ny*ny+nz*nz)+.001;
-      for(let j=0;j<3;j++){
-        const ii=inds[i+j];
-        norms[ii*3]+=nx/ln;norms[ii*3+1]+=ny/ln;norms[ii*3+2]+=nz/ln;
+      // 法線
+      for(let i=0;i<inds.length;i+=3){
+        const i0=inds[i]*3,i1=inds[i+1]*3,i2=inds[i+2]*3;
+        const ax=pos[i1]-pos[i0],ay=pos[i1+1]-pos[i0+1],az=pos[i1+2]-pos[i0+2];
+        const bx=pos[i2]-pos[i0],by=pos[i2+1]-pos[i0+1],bz=pos[i2+2]-pos[i0+2];
+        const nx=ay*bz-az*by,ny=az*bx-ax*bz,nz=ax*by-ay*bx;
+        const ln=Math.sqrt(nx*nx+ny*ny+nz*nz)+.001;
+        for(let j=0;j<3;j++){const ii=inds[i+j];norms[ii*3]+=nx/ln;norms[ii*3+1]+=ny/ln;norms[ii*3+2]+=nz/ln;}
       }
-    }
-    const mesh=new pc.Mesh(app.graphicsDevice);
-    mesh.setPositions(pos);mesh.setNormals(norms);mesh.setUvs(0,uvs);mesh.setIndices(inds);mesh.update();
-    const ge=new pc.Entity('g_'+k);
-    ge.addComponent('render',{meshInstances:[new pc.MeshInstance(mesh,mat(tGrass,5,5))]});
-    ge.setPosition(wx+CSIZ/2,0,wz+CSIZ/2);
-    app.root.addChild(ge);ents.push(ge);
-
-    // --- 道路（X方向） ---
-    {
-      const RW=22;
-      const cy=(wz+CSIZ/2),gy=getH(wx+CSIZ/2,cy);
-      const re=new pc.Entity('rx_'+k);
-      re.addComponent('render',{type:'plane',material:mat(tAsphalt,7,1)});
-      re.setLocalScale(CSIZ,1,RW);
-      re.setPosition(wx+CSIZ/2,gy+.06,cy);
-      app.root.addChild(re);ents.push(re);
-    }
-    // --- 道路（Z方向） ---
-    {
-      const RW=22;
-      const cx2=(wx+CSIZ/2),gy=getH(cx2,wz+CSIZ/2);
-      const re=new pc.Entity('rz_'+k);
-      re.addComponent('render',{type:'plane',material:mat(tAsphalt,1,7)});
-      re.setLocalScale(RW,1,CSIZ);
-      re.setPosition(cx2,gy+.06,wz+CSIZ/2);
-      app.root.addChild(re);ents.push(re);
+      const mesh=new pc.Mesh(app.graphicsDevice);
+      mesh.setPositions(pos);mesh.setNormals(norms);mesh.setUvs(0,uvs);mesh.setIndices(inds);mesh.update();
+      const ge=new pc.Entity('gnd_'+k);
+      ge.addComponent('render',{meshInstances:[new pc.MeshInstance(mesh,mat(TX_CONCRETE,6,6))]});
+      ge.setPosition(wx+CSIZ/2,0,wz+CSIZ/2);
+      app.root.addChild(ge);ents.push(ge);
     }
 
-    // --- 川 ---
-    const rng=(s)=>(Math.sin(cx*1637+cz*311+s)*.5+.5);
-    const hasCave=rng(0)>.6;
-    if(hasCave){
-      const rvx=wx+CSIZ*.25+rng(1)*CSIZ*.1;
-      const rvy=getH(rvx,wz+CSIZ/2)-.2;
-      const rvw=22+rng(2)*14;
-      const rve=new pc.Entity('rv_'+k);
-      rve.addComponent('render',{type:'plane',material:mat(tWater,3,7)});
-      rve.setLocalScale(rvw,1,CSIZ);
-      rve.setPosition(rvx,rvy,wz+CSIZ/2);
-      app.root.addChild(rve);ents.push(rve);
+    const rng=s=>(Math.sin(cx*1637+cz*311+s)*.5+.5);
+
+    // 道路オーバーレイ（X方向）
+    {
+      const h=getH(wx+CSIZ/2,wz+CSIZ/2);
+      const e=new pc.Entity();e.addComponent('render',{type:'plane',material:mat(TX_ASPHALT,8,1)});
+      e.setLocalScale(CSIZ,1,22);e.setPosition(wx+CSIZ/2,h+.06,wz+CSIZ/2);
+      app.root.addChild(e);ents.push(e);
+    }
+    // 道路（Z方向）
+    {
+      const h=getH(wx+CSIZ/2,wz+CSIZ/2);
+      const e=new pc.Entity();e.addComponent('render',{type:'plane',material:mat(TX_ASPHALT,1,8)});
+      e.setLocalScale(22,1,CSIZ);e.setPosition(wx+CSIZ/2,h+.06,wz+CSIZ/2);
+      app.root.addChild(e);ents.push(e);
+    }
+
+    // 川
+    if(rng(0)>.58){
+      const rvx=wx+CSIZ*.2+rng(1)*CSIZ*.15;
+      const rvy=getH(rvx,wz+CSIZ/2)-.25;
+      const rvw=20+rng(2)*16;
+      const rv=new pc.Entity();rv.addComponent('render',{type:'plane',material:mat(TX_WATER,3,7)});
+      rv.setLocalScale(rvw,1,CSIZ);rv.setPosition(rvx,rvy,wz+CSIZ/2);
+      app.root.addChild(rv);ents.push(rv);
       // 橋
-      const bry=Math.max(getH(rvx,wz+CSIZ/2),rvy)+.6;
-      const bre=new pc.Entity('br_'+k);
-      bre.addComponent('render',{type:'box',material:mat(tBridge,2,1)});
-      bre.setLocalScale(rvw+5,1.1,24);
-      bre.setPosition(rvx,bry,wz+CSIZ/2);
-      app.root.addChild(bre);ents.push(bre);
+      const bh=Math.max(getH(rvx,wz+CSIZ/2),rvy)+.55;
+      const br=new pc.Entity();br.addComponent('render',{type:'box',material:mat(TX_BRIDGE,2,1)});
+      br.setLocalScale(rvw+5,1.1,24);br.setPosition(rvx,bh,wz+CSIZ/2);
+      app.root.addChild(br);ents.push(br);
     }
 
-    // --- ビル ---
-    const nBuilds=Math.floor(2+rng(10)*5);
-    for(let bi=0;bi<nBuilds;bi++){
-      const bx=wx+rng(bi*7+1)*CSIZ;
-      const bz2=wz+rng(bi*7+2)*CSIZ;
-      const distRX=Math.abs(bz2-(wz+CSIZ/2));
-      const distRZ=Math.abs(bx-(wx+CSIZ/2));
-      if(distRX<20||distRZ<20)continue;
-      const bw=14+rng(bi*7+3)*18;
-      const bd2=14+rng(bi*7+4)*18;
-      const bh=18+rng(bi*7+5)*90;
-      const gh=getH(bx,bz2);
-      const isGl=rng(bi*7+6)>.45;
-      const uvV=bh/18;
-      const wm=mat(isGl?tGlass:tConcrete,1,uvV);
-      const be=new pc.Entity('b_'+k+'_'+bi);
-      be.addComponent('render',{type:'box',material:wm});
-      be.setLocalScale(bw,bh,bd2);
-      be.setPosition(bx,gh+bh/2,bz2);
-      be.setEulerAngles(0,rng(bi*7+7)*12-6,0);
+    // ビル
+    const nb=Math.floor(2+rng(10)*5);
+    for(let bi=0;bi<nb;bi++){
+      const bx=wx+rng(bi*7+1)*CSIZ,bz=wz+rng(bi*7+2)*CSIZ;
+      if(Math.abs(bz-(wz+CSIZ/2))<22||Math.abs(bx-(wx+CSIZ/2))<22)continue;
+      const bw=12+rng(bi*7+3)*20,bd=12+rng(bi*7+4)*20,bh=16+rng(bi*7+5)*85;
+      const gh=getH(bx,bz);
+      const wm=mat(rng(bi*7+6)>.45?TX_WALL_B:TX_WALL_A,1,bh/18);
+      const be=new pc.Entity();be.addComponent('render',{type:'box',material:wm});
+      be.setLocalScale(bw,bh,bd);be.setPosition(bx,gh+bh/2,bz);be.setEulerAngles(0,rng(bi*7+7)*12-6,0);
       app.root.addChild(be);ents.push(be);
-      // 屋上
-      const rfE=new pc.Entity('rf_'+k+'_'+bi);
-      rfE.addComponent('render',{type:'box',material:mat(tRoof)});
-      rfE.setLocalScale(bw,.4,bd2);
-      rfE.setPosition(bx,gh+bh+.2,bz2);
-      app.root.addChild(rfE);ents.push(rfE);
+      const rf=new pc.Entity();rf.addComponent('render',{type:'box',material:mat(TX_ROOF)});
+      rf.setLocalScale(bw,.4,bd);rf.setPosition(bx,gh+bh+.2,bz);
+      app.root.addChild(rf);ents.push(rf);
     }
 
-    chunkMap.set(k,{entities:ents});
+    chunkMap.set(k,ents);
   }
 
   function removeChunk(k){
-    const ch=chunkMap.get(k);
-    if(!ch)return;
-    ch.entities.forEach(e=>e.destroy());
-    chunkMap.delete(k);
+    const ents=chunkMap.get(k);if(!ents)return;
+    ents.forEach(e=>e.destroy());chunkMap.delete(k);
   }
 
-  // ----------------------------------------------------------------
-  // CUSTOM CAR PHYSICS (no Ammo.js)
-  // ----------------------------------------------------------------
-  // シンプルなRaycastVehicle風カーシミュレーション
-  // ・4輪独立サスペンション（レイキャスト代わりに地形高さを使用）
-  // ・後輪駆動
-  // ・フロントステアリング
-  // ・ドリフト・ブレーキ・RPM連動
+  // =====================================================================
+  //  カー物理
+  //  ※ yaw=0 のとき前方は +Z 方向（PlayCanvas標準）
+  //  ※ forward = (sin(yaw), 0, cos(yaw))  → yaw増加で右旋回
+  // =====================================================================
+  class CarPhysics{
+    constructor(x,y,z){
+      this.pos=new pc.Vec3(x,y,z);
+      this.vel=new pc.Vec3(0,0,0);
+      this.yaw=0;          // ラジアン。0=+Z方向が前
+      this.pitch=0;this.roll=0;
+      this.angVel=0;       // ヨー角速度 rad/s
 
-  class CarPhysics {
-    constructor(x, y, z) {
-      // 位置・速度・姿勢
-      this.pos = new pc.Vec3(x, y, z);
-      this.vel = new pc.Vec3(0, 0, 0);
-      this.yaw = 0;         // rad
-      this.pitch = 0;
-      this.roll = 0;
-      this.angVelY = 0;     // 角速度
+      this.mass=1400;
+      this.wheelBase=2.8;
+      this.trackWidth=1.8;
 
-      // 車両パラメータ
-      this.mass = 1400;
-      this.length = 4.5;
-      this.width = 2.0;
-      this.wheelBase = 2.8;   // 前後ホイールベース
-      this.trackWidth = 1.8;  // 左右トレッド
-
-      // エンジン
-      this.rpm = 800;
-      this.gear = 'D';        // D,R,N
-      this.engineForce = 0;
-      this.brakeForce = 0;
-      this.steer = 0;         // ステア角 rad
-      this.accelInput = 0;    // 0-1
-      this.brakeInput = 0;
-
-      // タイヤ
-      this.slip = 0;           // スリップ量
-
-      // サスペンション（4輪の高さオフセット）
-      this.suspY = [0,0,0,0];
-      this.wheelRot = [0,0,0,0];
-      this.onGround = false;
-
-      // 速度分解（ローカル）
-      this.localVelFwd = 0;  // 前後速度 m/s
-      this.localVelSide = 0; // 横速度 m/s
+      this.rpm=800;
+      this.accelInput=0;
+      this.brakeInput=0;
+      this.steer=0;        // ステア角 rad（正=左旋回）
+      this.slip=0;
+      this.onGround=false;
+      this.localFwd=0;     // ローカル前後速度（正=前進）
+      this.localSide=0;    // ローカル左右速度
+      this.wheelRot=0;     // ホイール回転角（表示用）
     }
 
-    // 車体前方ベクトル
-    forward() {
-      return new pc.Vec3(Math.sin(this.yaw), 0, Math.cos(this.yaw));
-    }
-    right() {
-      return new pc.Vec3(Math.cos(this.yaw), 0, -Math.sin(this.yaw));
-    }
+    // 前方ベクトル（+Z基準）
+    fwdVec(){return{x:Math.sin(this.yaw),z:Math.cos(this.yaw)};}
+    // 右方ベクトル
+    rgtVec(){return{x:Math.cos(this.yaw),z:-Math.sin(this.yaw)};}
 
-    update(dt, input) {
-      // ── 入力 ──
-      const { accel, brake, left, right, gear } = input;
-      this.gear = gear;
+    update(dt,inp){
+      const{accel,brake,left,right,gear}=inp;
 
-      // アクセル徐々に増加
-      const targetAccel = accel ? 1 : 0;
-      this.accelInput += (targetAccel - this.accelInput) * Math.min(1, dt * (accel ? 1.8 : 4));
+      // ── 入力平滑化 ──
+      this.accelInput+=(( accel?1:0)-this.accelInput)*Math.min(1,dt*(accel?2.5:5));
+      this.brakeInput+=((brake?1:0)-this.brakeInput)*Math.min(1,dt*(brake?7:9));
+      const steerTgt=(left?1:right?-1:0)*Math.max(.28,1-Math.abs(this.localFwd)/50);
+      this.steer+=(steerTgt-this.steer)*Math.min(1,dt*7);
 
-      const targetBrake = brake ? 1 : 0;
-      this.brakeInput += (targetBrake - this.brakeInput) * Math.min(1, dt * (brake ? 6 : 8));
-
-      // ステアリング
-      const steerTarget = left ? 0.55 : right ? -0.55 : 0;
-      // 高速で切れ角減少
-      const speedFactor = Math.max(0.3, 1 - Math.abs(this.localVelFwd) / 60);
-      this.steer += (steerTarget * speedFactor - this.steer) * Math.min(1, dt * 6);
-
-      // ── 地形高さサンプリング（4輪） ──
-      const fwd = this.forward();
-      const rgt = this.right();
-      const halfWB = this.wheelBase / 2;
-      const halfTW = this.trackWidth / 2;
-      const wheelOffs = [
-        new pc.Vec3( rgt.x*halfTW + fwd.x*halfWB, 0,  rgt.z*halfTW + fwd.z*halfWB), // FL
-        new pc.Vec3(-rgt.x*halfTW + fwd.x*halfWB, 0, -rgt.z*halfTW + fwd.z*halfWB), // FR
-        new pc.Vec3( rgt.x*halfTW - fwd.x*halfWB, 0,  rgt.z*halfTW - fwd.z*halfWB), // RL
-        new pc.Vec3(-rgt.x*halfTW - fwd.x*halfWB, 0, -rgt.z*halfTW - fwd.z*halfWB), // RR
+      // ── 4輪地形サンプリング ──
+      const f=this.fwdVec(),r=this.rgtVec();
+      const hw=this.wheelBase/2,ht=this.trackWidth/2;
+      const wpos=[
+        {x:this.pos.x+r.x*ht+f.x*hw, z:this.pos.z+r.z*ht+f.z*hw},  // FL
+        {x:this.pos.x-r.x*ht+f.x*hw, z:this.pos.z-r.z*ht+f.z*hw},  // FR
+        {x:this.pos.x+r.x*ht-f.x*hw, z:this.pos.z+r.z*ht-f.z*hw},  // RL
+        {x:this.pos.x-r.x*ht-f.x*hw, z:this.pos.z-r.z*ht-f.z*hw},  // RR
       ];
+      const gh=wpos.map(p=>getH(p.x,p.z));
 
-      const groundH = wheelOffs.map(off => {
-        return getH(this.pos.x + off.x, this.pos.z + off.z);
-      });
-
-      // サスペンション圧縮量 → バネ力
-      const restH = 0.45; // 静止高さ
-      const ks = 55000, kd = 3500; // バネ係数・ダンパー係数
-      const totalMass = this.mass;
-      let netForceY = -totalMass * 12; // 重力
-
-      this.onGround = false;
-      let groundContact = 0;
-
-      for (let i = 0; i < 4; i++) {
-        const wheelWorldY = this.pos.y + this.suspY[i];
-        const penetration = groundH[i] + restH - wheelWorldY;
-        if (penetration > 0) {
-          this.onGround = true;
-          groundContact++;
-          const springF = ks * penetration;
-          const dampF = kd * this.vel.y * -1;
-          netForceY += (springF + dampF) / 4;
-        }
+      // ── サスペンション ──
+      const REST=0.42;
+      let netFy=-this.mass*13; // 重力
+      this.onGround=false;
+      for(let i=0;i<4;i++){
+        const pen=gh[i]+REST-this.pos.y;
+        if(pen>0){this.onGround=true;netFy+=52000*pen-3000*this.vel.y;}
       }
 
-      // ── 速度分解 ──
-      this.localVelFwd = this.vel.x * fwd.x + this.vel.z * fwd.z;
-      this.localVelSide = this.vel.x * rgt.x + this.vel.z * rgt.z;
+      // ── ローカル速度分解 ──
+      this.localFwd =this.vel.x*f.x+this.vel.z*f.z;
+      this.localSide=this.vel.x*r.x+this.vel.z*r.z;
 
-      // ── エンジン力・ブレーキ ──
-      const MAX_SPEED = 55; // m/s ≈ 200 km/h
-      let driveFwd = 0;
-
-      if (this.gear === 'D') {
-        const torque = 4500 * this.accelInput;
-        const speedRatio = Math.max(0, 1 - Math.abs(this.localVelFwd) / MAX_SPEED);
-        driveFwd = torque * speedRatio;
-        if (this.localVelFwd < 0) driveFwd += 2000 * this.accelInput; // 逆方向加速補助
-      } else if (this.gear === 'R') {
-        const torque = 2000 * this.accelInput;
-        driveFwd = -torque * Math.max(0, 1 - Math.abs(this.localVelFwd) / 15);
+      // ── 駆動力 ──
+      const MAX_SPD=52;
+      let drive=0;
+      if(gear==='D'){
+        // D=前進（localFwd正方向）
+        drive= this.accelInput*4800*Math.max(0,1-this.localFwd/MAX_SPD);
+        if(this.localFwd<0) drive+=this.accelInput*2500; // 逆走からの回復
+      } else if(gear==='R'){
+        // R=後退（localFwd負方向）
+        drive=-this.accelInput*2200*Math.max(0,1+this.localFwd/18);
       }
+      // N=駆動力0
 
-      // RPM
-      const gRatios = [4, 3.2, 2.2, 1.6, 1.2, 1.0];
-      const gIdx = Math.min(Math.floor(Math.abs(this.localVelFwd) / 8), 5);
-      this.rpm = Math.min(7500, 800 + this.accelInput * 2800 + Math.abs(this.localVelFwd) * gRatios[gIdx] * 180);
+      // ── RPM ──
+      const gi=Math.min(Math.floor(Math.abs(this.localFwd)/8),5);
+      const grs=[4,3.2,2.2,1.6,1.2,1.0];
+      this.rpm=Math.min(7500,800+this.accelInput*2800+Math.abs(this.localFwd)*grs[gi]*170);
 
-      // ── タイヤ摩擦・ドリフト ──
-      const isBurnout = accel && brake && Math.abs(this.localVelFwd) < 3 && this.gear === 'D';
-      const frictionLat = this.onGround ? (isBurnout ? 300 : 2800) : 50;
-      const frictionFwd = this.onGround ? (this.brakeInput > 0.1 ? (800 + this.brakeInput * 3500) : 120) : 20;
+      // ── 摩擦 ──
+      const isBurn=accel&&brake&&Math.abs(this.localFwd)<3&&gear==='D';
+      const fricFwd=this.onGround?(this.brakeInput>.08?(700+this.brakeInput*3800):100):15;
+      const fricLat=this.onGround?(isBurn?250:2600):40;
+      this.slip=Math.min(1,Math.abs(this.localSide)/(Math.abs(this.localFwd)+1));
+      if(isBurn)this.slip=1;
+      const rearLat=Math.max(80,2600-Math.abs(this.localFwd)*22);
+      const latF=-(isBurn?this.localSide*200:this.localSide*(this.slip>.28?rearLat:fricLat));
+      const fwdF=drive-this.localFwd*fricFwd;
 
-      // スリップ計算
-      this.slip = Math.abs(this.localVelSide) / (Math.abs(this.localVelFwd) + 1);
-      if (isBurnout) this.slip = 1;
-
-      // ドリフト時は後輪摩擦を下げる（localVelSide強制保持）
-      const rearFric = Math.max(100, 2800 - Math.abs(this.localVelFwd) * 25);
-
-      // ── 力計算 ──
-      const accelForce = driveFwd;
-      const fwdFricF = -this.localVelFwd * frictionFwd;
-      const latFricF = -this.localVelSide * (this.slip > 0.3 ? rearFric : frictionLat);
-
-      // バーンアウト: 後輪横摩擦消失
-      const finalLatF = isBurnout ? -this.localVelSide * 200 : latFricF;
-
-      // ローカル→ワールド力
-      const totalFwdF = accelForce + fwdFricF;
-      const totalLatF = finalLatF;
-
-      let forceX = fwd.x * totalFwdF + rgt.x * totalLatF;
-      let forceZ = fwd.z * totalFwdF + rgt.z * totalLatF;
-
-      // ── 角速度（ヨー） ──
-      // ステアリングによるターン
-      if (this.onGround && Math.abs(this.localVelFwd) > 0.5) {
-        const turnRate = Math.tan(this.steer) * this.localVelFwd / this.wheelBase;
-        const targetAngVel = turnRate;
-        this.angVelY += (targetAngVel - this.angVelY) * Math.min(1, dt * 8);
+      // ── ヨー ──
+      if(this.onGround&&Math.abs(this.localFwd)>.5){
+        const turnRate=Math.tan(this.steer)*this.localFwd/this.wheelBase;
+        this.angVel+=(turnRate-this.angVel)*Math.min(1,dt*9);
       }
-      // ドリフト時ヨー増幅
-      if (this.slip > 0.25 && this.onGround) {
-        this.angVelY += this.localVelSide * 0.004;
-      }
-      // 角速度減衰
-      this.angVelY *= Math.max(0, 1 - dt * (this.onGround ? 4 : 1));
+      if(this.slip>.22&&this.onGround) this.angVel+=this.localSide*.005;
+      this.angVel*=Math.max(0,1-dt*(this.onGround?4.5:1));
+      this.yaw+=this.angVel*dt;
 
-      this.yaw += this.angVelY * dt;
-
-      // ── 速度・位置積分 ──
-      if (this.onGround) {
-        this.vel.x += (forceX / this.mass) * dt;
-        this.vel.z += (forceZ / this.mass) * dt;
-        // 速度上限
-        const spd = this.vel.length();
-        if (spd > MAX_SPEED) {
-          this.vel.x *= MAX_SPEED / spd;
-          this.vel.z *= MAX_SPEED / spd;
-        }
-        // Y速度をサスペンションで制御
-        this.vel.y += (netForceY / this.mass) * dt;
-        this.vel.y *= .7;
+      // ── 力→加速 ──
+      if(this.onGround){
+        const ax=(f.x*fwdF+r.x*latF)/this.mass;
+        const az=(f.z*fwdF+r.z*latF)/this.mass;
+        this.vel.x+=ax*dt; this.vel.z+=az*dt;
+        const spd=Math.sqrt(this.vel.x*this.vel.x+this.vel.z*this.vel.z);
+        if(spd>MAX_SPD){this.vel.x*=MAX_SPD/spd;this.vel.z*=MAX_SPD/spd;}
+        this.vel.y+=netFy/this.mass*dt;
+        this.vel.y*=.65;
       } else {
-        // 空中: 重力のみ
-        this.vel.y -= 14 * dt;
+        this.vel.y-=14*dt;
       }
 
-      this.pos.x += this.vel.x * dt;
-      this.pos.y += this.vel.y * dt;
-      this.pos.z += this.vel.z * dt;
+      this.pos.x+=this.vel.x*dt;
+      this.pos.y+=this.vel.y*dt;
+      this.pos.z+=this.vel.z*dt;
 
       // 地面貫通防止
-      const midH = getH(this.pos.x, this.pos.z);
-      if (this.pos.y < midH + 0.15) {
-        this.pos.y = midH + 0.15;
-        if (this.vel.y < 0) this.vel.y = 0;
-      }
+      const mh=getH(this.pos.x,this.pos.z);
+      if(this.pos.y<mh+.12){this.pos.y=mh+.12;if(this.vel.y<0)this.vel.y=0;}
 
       // ピッチ・ロール（視覚）
-      const hFL=groundH[0],hFR=groundH[1],hRL=groundH[2],hRR=groundH[3];
-      const avgFront=(hFL+hFR)/2, avgRear=(hRL+hRR)/2;
-      const avgLeft=(hFL+hRL)/2, avgRight=(hFR+hRR)/2;
-      const targetPitch=Math.atan2(avgRear-avgFront, this.wheelBase)*0.8;
-      const targetRoll=Math.atan2(avgRight-avgLeft, this.trackWidth)*0.6;
-      this.pitch+=(targetPitch-this.pitch)*Math.min(1,dt*6);
-      this.roll+=(targetRoll-this.roll)*Math.min(1,dt*6);
+      const af=(gh[0]+gh[1])/2,ar=(gh[2]+gh[3])/2;
+      const al=(gh[0]+gh[2])/2,arv=(gh[1]+gh[3])/2;
+      this.pitch+=(Math.atan2(ar-af,this.wheelBase)*.85-this.pitch)*Math.min(1,dt*6);
+      this.roll +=(Math.atan2(arv-al,this.trackWidth)*.6-this.roll)*Math.min(1,dt*6);
 
-      // ホイール回転
-      const wSpd = Math.abs(this.localVelFwd);
-      for(let i=0;i<4;i++) this.wheelRot[i]+=wSpd*dt*2.5;
+      // ホイール回転（前進時+、後退時-）
+      this.wheelRot+=this.localFwd*dt*2.2;
 
-      return {
-        slip: this.slip,
-        speedKmh: this.localVelFwd * 3.6,
-        rpm: this.rpm,
-        onGround: this.onGround,
-        isBurnout
-      };
+      return{slip:this.slip,speedKmh:this.localFwd*3.6,rpm:this.rpm,onGround:this.onGround,isBurn};
     }
   }
 
-  // ----------------------------------------------------------------
-  // BUILD PLAYER CAR ENTITY
-  // ----------------------------------------------------------------
-  const carColors=[
-    [215,45,45],[45,95,215],[45,175,75],[215,175,45],[165,45,215],[45,195,195]
-  ];
-  const pc0=carColors[Math.floor(Math.random()*carColors.length)];
-  const playerCarTex=tCar(...pc0);
-  const wheelMat=mat(tTire);
+  // =====================================================================
+  //  プレイヤー車エンティティ構築
+  // =====================================================================
+  const CAR_COLORS=[[210,40,40],[40,90,210],[40,170,70],[210,170,40],[160,40,210],[40,190,190]];
+  const pCol=CAR_COLORS[Math.floor(Math.random()*CAR_COLORS.length)];
+  const playerCarTex=tCar(...pCol);
+  const tireMat=mat(TX_TIRE);
 
   const carRoot=new pc.Entity('carRoot');
   app.root.addChild(carRoot);
 
-  // ボディ
-  const bodyM=new pc.Entity('body');
-  bodyM.addComponent('render',{type:'box',material:mat(playerCarTex,1,1)});
-  bodyM.setLocalScale(2,.75,4.5);
-  carRoot.addChild(bodyM);
-
-  // ルーフ
-  const roofM=new pc.Entity('roof');
-  roofM.addComponent('render',{type:'box',material:mat(playerCarTex,1,1)});
-  roofM.setLocalScale(1.55,.58,2.1);
-  roofM.setLocalPosition(0,.66,.15);
-  carRoot.addChild(roofM);
-
-  // フロントスポイラー
-  const spoilerM=new pc.Entity('sp');
-  spoilerM.addComponent('render',{type:'box',material:mat(tConcrete,1,1)});
-  spoilerM.setLocalScale(2,.12,.4);
-  spoilerM.setLocalPosition(0,-.32,-2.3);
-  carRoot.addChild(spoilerM);
-
-  // ヘッドライト
-  const hlMat2=new pc.StandardMaterial();
-  hlMat2.emissive=new pc.Color(1,1,.8);hlMat2.emissiveIntensity=1.2;hlMat2.update();
-  [[-0.7,-.05,-2.32],[0.7,-.05,-2.32]].forEach(p=>{
-    const hl=new pc.Entity('hl');
-    hl.addComponent('render',{type:'box',material:hlMat2});
-    hl.setLocalScale(.45,.2,.08);hl.setLocalPosition(...p);
-    carRoot.addChild(hl);
-  });
-
-  // テールライト
-  const tlMat=new pc.StandardMaterial();
-  tlMat.emissive=new pc.Color(1,.1,.1);tlMat.emissiveIntensity=1.;tlMat.update();
-  [[-0.7,-.05,2.32],[0.7,-.05,2.32]].forEach(p=>{
-    const tl=new pc.Entity('tl');
-    tl.addComponent('render',{type:'box',material:tlMat});
-    tl.setLocalScale(.4,.18,.07);tl.setLocalPosition(...p);
-    carRoot.addChild(tl);
-  });
-
-  // タイヤ (4輪)
+  // タイヤは carRoot の外（ワールド空間で位置更新）
+  // → carRoot の回転の影響を受けないようにする
   const wheelEnts=[];
-  [[-1.05,-.32,-1.35],[1.05,-.32,-1.35],[-1.05,-.32,1.35],[1.05,-.32,1.35]].forEach(wp=>{
-    const we=new pc.Entity('w');
-    we.addComponent('render',{type:'cylinder',material:wheelMat});
-    we.setLocalScale(.48,.32,.48);
-    we.setLocalEulerAngles(0,0,90);
-    we.setLocalPosition(...wp);
-    carRoot.addChild(we);
+  for(let i=0;i<4;i++){
+    const we=new pc.Entity('whl'+i);
+    we.addComponent('render',{type:'cylinder',material:tireMat});
+    we.setLocalScale(.46,.3,.46);
+    app.root.addChild(we);  // carRootの子にしない
     wheelEnts.push(we);
-  });
+  }
+
+  // GLBモデルがあれば読み込み、なければプロシージャルモデル
+  let hasGlb=false;
+
+  function buildProceduralCar(){
+    // ボディ
+    const bm=new pc.Entity('bd');bm.addComponent('render',{type:'box',material:mat(playerCarTex,1,1)});
+    bm.setLocalScale(2,.72,4.5);carRoot.addChild(bm);
+    // ルーフ
+    const rm=new pc.Entity('rf');rm.addComponent('render',{type:'box',material:mat(playerCarTex,1,1)});
+    rm.setLocalScale(1.5,.55,2.0);rm.setLocalPosition(0,.64,.1);carRoot.addChild(rm);
+    // フロントバンパー
+    const fb=new pc.Entity('fb');fb.addComponent('render',{type:'box',material:mat(TX_CONCRETE,1,1)});
+    fb.setLocalScale(2,.18,.3);fb.setLocalPosition(0,-.28,-2.26);carRoot.addChild(fb);
+    // ヘッドライト
+    const hlM=new pc.StandardMaterial();hlM.emissive=new pc.Color(1,1,.82);hlM.emissiveIntensity=1.3;hlM.update();
+    [[-0.68,-.04,-2.3],[0.68,-.04,-2.3]].forEach(p=>{
+      const h=new pc.Entity();h.addComponent('render',{type:'box',material:hlM});
+      h.setLocalScale(.42,.18,.07);h.setLocalPosition(...p);carRoot.addChild(h);
+    });
+    // テールライト
+    const tlM=new pc.StandardMaterial();tlM.emissive=new pc.Color(.9,.08,.08);tlM.emissiveIntensity=1.1;tlM.update();
+    [[-0.68,-.04,2.3],[0.68,-.04,2.3]].forEach(p=>{
+      const t=new pc.Entity();t.addComponent('render',{type:'box',material:tlM});
+      t.setLocalScale(.38,.16,.06);t.setLocalPosition(...p);carRoot.addChild(t);
+    });
+  }
+
+  if(userGlbUrl){
+    // GLBモデルをPlayCanvas Assetとして読み込む
+    const asset=new pc.Asset('car_glb','container',{url:userGlbUrl});
+    app.assets.add(asset);
+    asset.on('load',()=>{
+      const res=asset.resource;
+      if(res&&res.instantiateRenderEntity){
+        const glbEntity=res.instantiateRenderEntity();
+        // モデルのスケール調整（GLBによって異なるので適度に）
+        glbEntity.setLocalScale(1,1,1);
+        carRoot.addChild(glbEntity);
+        hasGlb=true;
+        setPg(100,'Ready!');
+        setTimeout(()=>$('loading').style.display='none',300);
+      } else {
+        buildProceduralCar();
+        setPg(100,'Ready!');
+        setTimeout(()=>$('loading').style.display='none',300);
+      }
+    });
+    asset.on('error',()=>{
+      buildProceduralCar();
+      setPg(100,'Ready (GLB load failed)');
+      setTimeout(()=>$('loading').style.display='none',400);
+    });
+    app.assets.load(asset);
+  } else {
+    buildProceduralCar();
+    setPg(100,'Ready!');
+    setTimeout(()=>$('loading').style.display='none',300);
+  }
 
   const carPhys=new CarPhysics(0,5,0);
 
-  // ----------------------------------------------------------------
-  // NPC CARS
-  // ----------------------------------------------------------------
+  // タイヤ位置（ローカルオフセット）
+  // [右+左-, 縦offset, 前+後-]  ※ carRootローカル
+  const WHEEL_OFFSETS=[
+    { x:-1.06, y:-.3, z:-1.32},  // FL
+    { x: 1.06, y:-.3, z:-1.32},  // FR
+    { x:-1.06, y:-.3, z: 1.32},  // RL
+    { x: 1.06, y:-.3, z: 1.32},  // RR
+  ];
+
+  // =====================================================================
+  //  NPC
+  // =====================================================================
   const npcList=[];
   const MAX_NPC=8;
+  const NPC_COLORS=[[200,60,60],[60,60,200],[60,190,70],[200,170,40],[170,60,200],[40,180,180],[200,130,40]];
 
-  class NpcCar {
-    constructor(x,y,z,col){
+  class NpcCar{
+    constructor(x,y,z){
       this.phys=new CarPhysics(x,y,z);
       this.phys.yaw=Math.random()*Math.PI*2;
-      this.wayX=x+(Math.random()-.5)*250;
-      this.wayZ=z+(Math.random()-.5)*250;
-      this.entity=new pc.Entity('npc');
-      app.root.addChild(this.entity);
+      this.wayX=x+(Math.random()-.5)*240;
+      this.wayZ=z+(Math.random()-.5)*240;
+      const col=NPC_COLORS[Math.floor(Math.random()*NPC_COLORS.length)];
+      this.ent=new pc.Entity('npc');app.root.addChild(this.ent);
       const ct=tCar(...col);
-      const bm=new pc.Entity();
-      bm.addComponent('render',{type:'box',material:mat(ct,1,1)});
-      bm.setLocalScale(2,.75,4.5);
-      this.entity.addChild(bm);
-      const rm=new pc.Entity();
-      rm.addComponent('render',{type:'box',material:mat(ct,1,1)});
-      rm.setLocalScale(1.55,.58,2.1);rm.setLocalPosition(0,.66,.15);
-      this.entity.addChild(rm);
-      // タイヤ
-      [[-1.05,-.32,-1.35],[1.05,-.32,-1.35],[-1.05,-.32,1.35],[1.05,-.32,1.35]].forEach(wp=>{
-        const we=new pc.Entity();
-        we.addComponent('render',{type:'cylinder',material:wheelMat});
-        we.setLocalScale(.45,.3,.45);we.setLocalEulerAngles(0,0,90);we.setLocalPosition(...wp);
-        this.entity.addChild(we);
-      });
+      const bm=new pc.Entity();bm.addComponent('render',{type:'box',material:mat(ct,1,1)});
+      bm.setLocalScale(2,.72,4.5);this.ent.addChild(bm);
+      const rm=new pc.Entity();rm.addComponent('render',{type:'box',material:mat(ct,1,1)});
+      rm.setLocalScale(1.5,.55,2.0);rm.setLocalPosition(0,.64,.1);this.ent.addChild(rm);
+      // NPC用タイヤもワールド空間で管理
+      this.wheels=[];
+      for(let i=0;i<4;i++){
+        const we=new pc.Entity();we.addComponent('render',{type:'cylinder',material:tireMat});
+        we.setLocalScale(.44,.28,.44);app.root.addChild(we);this.wheels.push(we);
+      }
     }
 
     update(dt){
-      // ウェイポイントAI
-      const dx=this.wayX-this.phys.pos.x;
-      const dz=this.wayZ-this.phys.pos.z;
+      const dx=this.wayX-this.phys.pos.x,dz=this.wayZ-this.phys.pos.z;
       const d=Math.sqrt(dx*dx+dz*dz);
-      if(d<15){
-        this.wayX=this.phys.pos.x+(Math.random()-.5)*250;
-        this.wayZ=this.phys.pos.z+(Math.random()-.5)*250;
-      }
-      // 目標方向
-      const tgtYaw=Math.atan2(dx,dz);
-      let dyaw=tgtYaw-this.phys.yaw;
-      while(dyaw>Math.PI)dyaw-=Math.PI*2;
-      while(dyaw<-Math.PI)dyaw+=Math.PI*2;
-      const ai={
-        accel:true,brake:false,
-        left:dyaw>0.05,right:dyaw<-0.05,
-        gear:'D'
-      };
-      // 速度制限
-      if(Math.abs(this.phys.localVelFwd)>12) ai.accel=false;
+      if(d<15){this.wayX=this.phys.pos.x+(Math.random()-.5)*240;this.wayZ=this.phys.pos.z+(Math.random()-.5)*240;}
+      const tgt=Math.atan2(dx,dz);
+      let dy=tgt-this.phys.yaw;
+      while(dy>Math.PI)dy-=Math.PI*2;while(dy<-Math.PI)dy+=Math.PI*2;
+      const ai={accel:Math.abs(this.phys.localFwd)<12,brake:false,left:dy>.06,right:dy<-.06,gear:'D'};
       this.phys.update(dt,ai);
-      // エンティティ更新
-      this.entity.setPosition(this.phys.pos);
+      this.ent.setPosition(this.phys.pos);
       const q=new pc.Quat();
-      q.setFromEulerAngles(
-        this.phys.pitch*180/Math.PI,
-        -this.phys.yaw*180/Math.PI,
-        -this.phys.roll*180/Math.PI
-      );
-      this.entity.setRotation(q);
+      q.setFromEulerAngles(this.phys.pitch*57.3,-this.phys.yaw*57.3,-this.phys.roll*57.3);
+      this.ent.setRotation(q);
+      // タイヤ位置更新
+      this._updateWheels();
+    }
+
+    _updateWheels(){
+      const p=this.phys;
+      const f=p.fwdVec(),r=p.rgtVec();
+      WHEEL_OFFSETS.forEach((off,i)=>{
+        const wx=p.pos.x+r.x*off.x+f.x*off.z;
+        const wz=p.pos.z+r.z*off.x+f.z*off.z;
+        const wy=p.pos.y+off.y;
+        this.wheels[i].setPosition(wx,wy,wz);
+        // 車体ヨーに合わせて回転（タイヤは横向きcylinder→Z軸90度+ヨー）
+        const q=new pc.Quat();
+        q.setFromEulerAngles(p.wheelRot*57.3, -p.yaw*57.3, 90);
+        this.wheels[i].setRotation(q);
+      });
     }
 
     destroy(){
-      this.entity.destroy();
+      this.ent.destroy();
+      this.wheels.forEach(w=>w.destroy());
     }
   }
 
-  function spawnNpc(x,y,z){
-    if(npcList.length>=MAX_NPC)return;
-    const col=carColors[Math.floor(Math.random()*carColors.length)];
-    npcList.push(new NpcCar(x,y,z,col));
-  }
+  function spawnNpc(x,y,z){if(npcList.length>=MAX_NPC)return;npcList.push(new NpcCar(x,y,z));}
+  for(let i=0;i<4;i++)spawnNpc(40+i*22,5,25+i*20);
 
-  for(let i=0;i<4;i++) spawnNpc(50+i*25,5,20+i*18);
-
-  // ----------------------------------------------------------------
-  // SKID MARKS
-  // ----------------------------------------------------------------
-  const skidEnts=[];
-  const MAX_SKID=30;
-  const skidMat2=mat(tSkid,1,1);
-
+  // =====================================================================
+  //  スキッドマーク
+  // =====================================================================
+  const skids=[];const MAX_SKID=30;const skidMat2=mat(TX_SKID,1,1);
   function addSkid(pos,yaw){
-    if(skidEnts.length>=MAX_SKID){
-      const old=skidEnts.shift();old.destroy();
-    }
-    const e=new pc.Entity('skid');
-    e.addComponent('render',{type:'plane',material:skidMat2});
-    e.setLocalScale(1.4,1,3.2);
-    e.setPosition(pos.x,pos.y+.02,pos.z);
-    e.setEulerAngles(0,-yaw*180/Math.PI,0);
-    app.root.addChild(e);
-    skidEnts.push(e);
+    if(skids.length>=MAX_SKID){const o=skids.shift();o.destroy();}
+    const e=new pc.Entity();e.addComponent('render',{type:'plane',material:skidMat2});
+    e.setLocalScale(1.3,1,3.2);e.setPosition(pos.x,pos.y+.025,pos.z);
+    e.setEulerAngles(0,-yaw*57.3,0);app.root.addChild(e);skids.push(e);
   }
 
-  // ----------------------------------------------------------------
-  // INPUT
-  // ----------------------------------------------------------------
+  // =====================================================================
+  //  入力
+  // =====================================================================
   const inp={accel:false,brake:false,left:false,right:false,gear:'D'};
-  const keys2={};
+  const keys={};
 
   function setupBtn(id,onD,onU){
-    const el=document.getElementById(id);
-    if(!el)return;
-    const down=e=>{e.preventDefault();onD();el.classList.add('act')};
-    const up=e=>{e.preventDefault();onU();el.classList.remove('act')};
-    el.addEventListener('pointerdown',down);
-    el.addEventListener('pointerup',up);
-    el.addEventListener('pointerleave',up);
+    const el=$(id);if(!el)return;
+    el.addEventListener('pointerdown',e=>{e.preventDefault();onD();el.classList.add('act');});
+    el.addEventListener('pointerup',e=>{e.preventDefault();onU();el.classList.remove('act');});
+    el.addEventListener('pointerleave',e=>{onU();el.classList.remove('act');});
   }
   setupBtn('bacc',()=>inp.accel=true,()=>inp.accel=false);
   setupBtn('bbrk',()=>inp.brake=true,()=>inp.brake=false);
-  setupBtn('blft',()=>inp.left=true,()=>inp.left=false);
+  setupBtn('blft',()=>inp.left=true, ()=>inp.left=false);
   setupBtn('brgt',()=>inp.right=true,()=>inp.right=false);
 
   function setGear(g){
     inp.gear=g;
-    ['bd','br','bn'].forEach(id=>document.getElementById(id).classList.remove('act'));
-    document.getElementById({D:'bd',R:'br',N:'bn'}[g]).classList.add('act');
-    document.getElementById('geardsp').textContent=g;
+    ['bd','br','bn'].forEach(id=>$(id).classList.remove('act'));
+    $({D:'bd',R:'br',N:'bn'}[g]).classList.add('act');
+    $('geardsp').textContent=g;
   }
-  document.getElementById('bd').addEventListener('click',()=>setGear('D'));
-  document.getElementById('br').addEventListener('click',()=>setGear('R'));
-  document.getElementById('bn').addEventListener('click',()=>setGear('N'));
+  $('bd').addEventListener('click',()=>setGear('D'));
+  $('br').addEventListener('click',()=>setGear('R'));
+  $('bn').addEventListener('click',()=>setGear('N'));
   setGear('D');
 
   window.addEventListener('keydown',e=>{
-    keys2[e.code]=true;
-    if(e.code==='KeyD'&&inp.gear==='D')return;
-    if(e.code==='KeyD')setGear('D');
-    if(e.code==='KeyR')setGear('R');
-    if(e.code==='KeyN')setGear('N');
+    keys[e.code]=true;
+    if(e.code==='Digit1')setGear('D');
+    if(e.code==='Digit2')setGear('R');
+    if(e.code==='Digit3')setGear('N');
   });
-  window.addEventListener('keyup',e=>keys2[e.code]=false);
+  window.addEventListener('keyup',e=>keys[e.code]=false);
 
-  // ----------------------------------------------------------------
-  // AUDIO
-  // ----------------------------------------------------------------
-  let actx=null,engOsc=null,engGain=null,slipGain2=null;
+  // =====================================================================
+  //  音声
+  // =====================================================================
+  let actx=null,engOsc=null,engGain=null,slpGain=null;
   function initAudio(){
     if(actx)return;
     actx=new(window.AudioContext||window.webkitAudioContext)();
     engOsc=actx.createOscillator();engOsc.type='sawtooth';
     const dist=actx.createWaveShaper();
-    const cv2=new Float32Array(256);
-    for(let i=0;i<256;i++){const x=(i*2)/256-1;cv2[i]=(Math.PI+200)*x/(Math.PI+200*Math.abs(x));}
-    dist.curve=cv2;
-    engGain=actx.createGain();engGain.gain.value=.07;
-    engOsc.connect(dist);dist.connect(engGain);engGain.connect(actx.destination);
-    engOsc.start();
-    // スリップ
-    const bsz=2048;
-    const spNode=actx.createScriptProcessor(bsz,1,1);
-    spNode.onaudioprocess=e=>{const o=e.outputBuffer.getChannelData(0);for(let i=0;i<bsz;i++)o[i]=(Math.random()*2-1);};
-    slipGain2=actx.createGain();slipGain2.gain.value=0;
+    const cv=new Float32Array(256);
+    for(let i=0;i<256;i++){const x=(i*2)/256-1;cv[i]=(Math.PI+200)*x/(Math.PI+200*Math.abs(x));}
+    dist.curve=cv;
+    engGain=actx.createGain();engGain.gain.value=.06;
+    engOsc.connect(dist);dist.connect(engGain);engGain.connect(actx.destination);engOsc.start();
+    const bsz=2048,spn=actx.createScriptProcessor(bsz,1,1);
+    spn.onaudioprocess=e=>{const o=e.outputBuffer.getChannelData(0);for(let i=0;i<bsz;i++)o[i]=(Math.random()*2-1);};
+    slpGain=actx.createGain();slpGain.gain.value=0;
     const flt=actx.createBiquadFilter();flt.type='bandpass';flt.frequency.value=900;
-    spNode.connect(flt);flt.connect(slipGain2);slipGain2.connect(actx.destination);
+    spn.connect(flt);flt.connect(slpGain);slpGain.connect(actx.destination);
   }
-  document.getElementById('c').addEventListener('pointerdown',initAudio,{once:true});
+  $('c').addEventListener('pointerdown',initAudio,{once:true});
   window.addEventListener('keydown',initAudio,{once:true});
 
-  // ----------------------------------------------------------------
-  // MINIMAP
-  // ----------------------------------------------------------------
-  const mmcv=document.getElementById('mmcv'),mmctx=mmcv.getContext('2d'),MMS=120;
+  // =====================================================================
+  //  ミニマップ
+  // =====================================================================
+  const mmcv=$('mmcv'),mmctx=mmcv.getContext('2d'),MMS=100;
   function drawMM(px,pz,yaw){
     mmctx.clearRect(0,0,MMS,MMS);
-    mmctx.fillStyle='rgba(0,35,0,.8)';mmctx.fillRect(0,0,MMS,MMS);
-    const sc=1.6,cx2=MMS/2,cy2=MMS/2;
+    mmctx.fillStyle='rgba(0,30,0,.82)';mmctx.fillRect(0,0,MMS,MMS);
+    const sc=1.8,cx=MMS/2,cy=MMS/2;
     mmctx.strokeStyle='#555';mmctx.lineWidth=2.5;
     for(let i=-3;i<=3;i++){
-      const rx=cx2+(i*CSIZ/sc-(px%CSIZ)/sc);
+      const rx=cx+(i*CSIZ-(px%CSIZ))/sc;
       mmctx.beginPath();mmctx.moveTo(rx,0);mmctx.lineTo(rx,MMS);mmctx.stroke();
-      const rz=cy2+(i*CSIZ/sc-(pz%CSIZ)/sc);
+      const rz=cy+(i*CSIZ-(pz%CSIZ))/sc;
       mmctx.beginPath();mmctx.moveTo(0,rz);mmctx.lineTo(MMS,rz);mmctx.stroke();
     }
     npcList.forEach(n=>{
       const dx=(n.phys.pos.x-px)/sc,dz=(n.phys.pos.z-pz)/sc;
-      mmctx.fillStyle='#f44';mmctx.fillRect(cx2+dx-2.5,cy2+dz-2.5,5,5);
+      mmctx.fillStyle='#f44';mmctx.fillRect(cx+dx-2,cy+dz-2,4,4);
     });
-    mmctx.save();mmctx.translate(cx2,cy2);mmctx.rotate(-yaw);
-    mmctx.fillStyle='#0f0';mmctx.beginPath();
-    mmctx.moveTo(0,-8);mmctx.lineTo(-4.5,5);mmctx.lineTo(4.5,5);
+    mmctx.save();mmctx.translate(cx,cy);mmctx.rotate(-yaw);
+    mmctx.fillStyle='#0f0';mmctx.beginPath();mmctx.moveTo(0,-7);mmctx.lineTo(-4,5);mmctx.lineTo(4,5);
     mmctx.closePath();mmctx.fill();mmctx.restore();
   }
 
-  // ----------------------------------------------------------------
-  // CAMERA
-  // ----------------------------------------------------------------
-  const smoothCam=new pc.Vec3(0,8,-15);
+  // =====================================================================
+  //  プレイヤータイヤ位置更新（carRootの外でワールド空間）
+  // =====================================================================
+  function updatePlayerWheels(){
+    const p=carPhys;
+    const f=p.fwdVec(),r=p.rgtVec();
+    WHEEL_OFFSETS.forEach((off,i)=>{
+      // carRootローカル座標をワールドに変換
+      // off.x=右方向オフセット, off.z=前後オフセット, off.y=高さ
+      const wx=p.pos.x + r.x*off.x + f.x*off.z;
+      const wz=p.pos.z + r.z*off.x + f.z*off.z;
+      const wy=p.pos.y + off.y;
+      wheelEnts[i].setPosition(wx, wy, wz);
+      // タイヤ向き：車体ヨー + 前進方向の回転
+      // cylinder はデフォルトY軸方向、setLocalEulerAngles(rot, yaw_deg, 90) で横向き
+      const q=new pc.Quat();
+      // X=転がり角度、Y=ヨー（車体方向）、Z=90度でcylinderを横向き
+      q.setFromEulerAngles(p.wheelRot*57.3, -p.yaw*57.3, 90);
+      wheelEnts[i].setRotation(q);
+    });
+  }
+
+  // =====================================================================
+  //  カメラ
+  // =====================================================================
+  const smoothCam=new pc.Vec3(0,7,-14);
   const CAM_LAG=5;
 
-  // ----------------------------------------------------------------
-  // MAIN LOOP
-  // ----------------------------------------------------------------
+  // =====================================================================
+  //  メインループ
+  // =====================================================================
   let lastCX=9999,lastCZ=9999,frame=0;
-  let waterT=0;
 
   app.on('update',dt=>{
     frame++;
     dt=Math.min(dt,.05);
-    waterT+=dt;
 
-    // キー入力同期
-    if(keys2['ArrowUp']||keys2['KeyW'])inp.accel=true;
-    else if(!document.getElementById('bacc').classList.contains('act'))inp.accel=false;
-    if(keys2['ArrowDown']||keys2['KeyS'])inp.brake=true;
-    else if(!document.getElementById('bbrk').classList.contains('act'))inp.brake=false;
-    if(keys2['ArrowLeft']||keys2['KeyA'])inp.left=true;
-    else if(!document.getElementById('blft').classList.contains('act'))inp.left=false;
-    if(keys2['ArrowRight'])inp.right=true;
-    else if(!document.getElementById('brgt').classList.contains('act'))inp.right=false;
+    // キーボード → inp反映
+    const kA=keys['ArrowUp']||keys['KeyW'];
+    const kB=keys['ArrowDown']||keys['KeyS'];
+    const kL=keys['ArrowLeft']||keys['KeyA'];
+    const kR=keys['ArrowRight']||keys['KeyD'];
+    if(kA)inp.accel=true; else if(!$('bacc').classList.contains('act'))inp.accel=false;
+    if(kB)inp.brake=true; else if(!$('bbrk').classList.contains('act'))inp.brake=false;
+    if(kL)inp.left=true;  else if(!$('blft').classList.contains('act'))inp.left=false;
+    if(kR)inp.right=true; else if(!$('brgt').classList.contains('act'))inp.right=false;
 
-    // プレイヤー物理
-    const state=carPhys.update(dt,inp);
+    // 物理更新
+    const st=carPhys.update(dt,inp);
 
-    // エンティティ更新
+    // carRoot更新
     carRoot.setPosition(carPhys.pos);
-    const pq=new pc.Quat();
-    pq.setFromEulerAngles(
-      carPhys.pitch*180/Math.PI,
-      -carPhys.yaw*180/Math.PI,
-      -carPhys.roll*180/Math.PI
-    );
-    carRoot.setRotation(pq);
+    const q=new pc.Quat();
+    q.setFromEulerAngles(carPhys.pitch*57.3, -carPhys.yaw*57.3, -carPhys.roll*57.3);
+    carRoot.setRotation(q);
 
-    // タイヤ回転
-    wheelEnts.forEach((we,i)=>{
-      we.setLocalEulerAngles(carPhys.wheelRot[i]*180/Math.PI,0,90);
-    });
+    // タイヤ更新（ワールド空間）
+    updatePlayerWheels();
 
     // スキッドマーク
-    if((state.slip>0.3||state.isBurnout)&&carPhys.onGround&&frame%3===0){
+    if((st.slip>.28||st.isBurn)&&carPhys.onGround&&frame%3===0)
       addSkid(carPhys.pos,carPhys.yaw);
-    }
 
-    // NPC更新
+    // NPC
     if(frame%2===0){
-      const toRm=[];
+      const rm=[];
       npcList.forEach(n=>{
-        const d=n.phys.pos.distance(carPhys.pos);
-        if(d>320){toRm.push(n);return;}
+        if(n.phys.pos.distance(carPhys.pos)>320||n.phys.pos.y<-30){rm.push(n);return;}
         n.update(dt*2);
       });
-      toRm.forEach(n=>{n.destroy();npcList.splice(npcList.indexOf(n),1);});
-      if(npcList.length<MAX_NPC&&frame%30===0){
-        const ang=Math.random()*Math.PI*2,dist2=90+Math.random()*100;
-        const sx=carPhys.pos.x+Math.cos(ang)*dist2,sz=carPhys.pos.z+Math.sin(ang)*dist2;
+      rm.forEach(n=>{n.destroy();npcList.splice(npcList.indexOf(n),1);});
+      if(npcList.length<MAX_NPC&&frame%40===0){
+        const a=Math.random()*Math.PI*2,d=90+Math.random()*100;
+        const sx=carPhys.pos.x+Math.cos(a)*d,sz=carPhys.pos.z+Math.sin(a)*d;
         spawnNpc(sx,getH(sx,sz)+2,sz);
       }
     }
@@ -1088,56 +916,51 @@ function initGame(){
     const cx=Math.floor(carPhys.pos.x/CSIZ),cz=Math.floor(carPhys.pos.z/CSIZ);
     if(cx!==lastCX||cz!==lastCZ){
       lastCX=cx;lastCZ=cz;
-      for(let dx=-RDIST;dx<=RDIST;dx++)
-        for(let dz=-RDIST;dz<=RDIST;dz++) createChunk(cx+dx,cz+dz);
+      for(let dx=-RDIST;dx<=RDIST;dx++)for(let dz=-RDIST;dz<=RDIST;dz++)createChunk(cx+dx,cz+dz);
       chunkMap.forEach((_,k)=>{
-        const [kcx,kcz]=k.split(',').map(Number);
-        if(Math.abs(kcx-cx)>RDIST+1||Math.abs(kcz-cz)>RDIST+1) removeChunk(k);
+        const[kcx,kcz]=k.split(',').map(Number);
+        if(Math.abs(kcx-cx)>RDIST+1||Math.abs(kcz-cz)>RDIST+1)removeChunk(k);
       });
     }
 
-    // カメラ
-    const camDist=12,camH=5.5;
+    // カメラ（後方追従）
+    const camDist=13,camH=6;
     const tx=carPhys.pos.x+Math.sin(carPhys.yaw)*camDist;
     const tz=carPhys.pos.z+Math.cos(carPhys.yaw)*camDist;
     const ty=carPhys.pos.y+camH;
     const ls=Math.min(1,dt*CAM_LAG);
     smoothCam.x+=(tx-smoothCam.x)*ls;
-    smoothCam.y+=(ty-smoothCam.y)*ls*.6;
+    smoothCam.y+=(ty-smoothCam.y)*ls*.55;
     smoothCam.z+=(tz-smoothCam.z)*ls;
     camE.setPosition(smoothCam);
-    camE.lookAt(carPhys.pos.x,carPhys.pos.y+1,carPhys.pos.z);
+    camE.lookAt(carPhys.pos.x,carPhys.pos.y+1.2,carPhys.pos.z);
 
     // 音
     if(actx&&engOsc){
-      const f=55+state.rpm/7500*200;
-      engOsc.frequency.setTargetAtTime(f,actx.currentTime,.08);
+      engOsc.frequency.setTargetAtTime(55+st.rpm/7500*200,actx.currentTime,.08);
       engGain.gain.setTargetAtTime(.04+carPhys.accelInput*.06,actx.currentTime,.06);
-      slipGain2.gain.setTargetAtTime(state.slip>.3?.06:0,actx.currentTime,.12);
+      slpGain.gain.setTargetAtTime(st.slip>.28?.06:0,actx.currentTime,.12);
     }
 
     // 転落リセット
     if(carPhys.pos.y<-30){
       carPhys.pos.set(carPhys.pos.x,getH(carPhys.pos.x,carPhys.pos.z)+4,carPhys.pos.z);
-      carPhys.vel.set(0,0,0);carPhys.angVelY=0;
+      carPhys.vel.set(0,0,0);carPhys.angVel=0;
     }
 
     // HUD
     if(frame%2===0){
-      document.getElementById('spd').textContent=Math.abs(Math.floor(state.speedKmh));
-      document.getElementById('rpmbar').style.width=(state.rpm/7500*100)+'%';
-      document.getElementById('ipos').textContent=`POS: ${Math.floor(carPhys.pos.x)}, ${Math.floor(carPhys.pos.z)}`;
-      document.getElementById('ichk').textContent=`CHUNKS: ${chunkMap.size}`;
-      document.getElementById('inpc').textContent=`NPCs: ${npcList.length} | FPS: ${Math.round(1/Math.max(dt,.001))}`;
+      $('spd').textContent=Math.abs(Math.floor(st.speedKmh));
+      $('rpmbar').style.width=(st.rpm/7500*100)+'%';
+      $('ipos').textContent=`POS: ${Math.floor(carPhys.pos.x)}, ${Math.floor(carPhys.pos.z)}`;
+      $('ichk').textContent=`CHUNKS: ${chunkMap.size}`;
+      $('inpc').textContent=`NPCs: ${npcList.length} | FPS: ${Math.round(1/Math.max(dt,.001))}`;
       drawMM(carPhys.pos.x,carPhys.pos.z,carPhys.yaw);
     }
   });
 
   // 初期チャンク
-  for(let dx=-RDIST;dx<=RDIST;dx++)
-    for(let dz=-RDIST;dz<=RDIST;dz++) createChunk(dx,dz);
-
-  console.log('STREET RACER v2 - No Ammo.js, Custom Physics');
+  for(let dx=-RDIST;dx<=RDIST;dx++)for(let dz=-RDIST;dz<=RDIST;dz++)createChunk(dx,dz);
 }
 </script>
 </body>
