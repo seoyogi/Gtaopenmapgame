@@ -2,36 +2,769 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Yumazon AI</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>TESLA DRIVE</title>
 <style>
-body{
-  margin:0;
-  font-family: system-ui, sans-serif;
-  background:#343541;
-  height:100vh;
-}
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #000; overflow: hidden; font-family: 'Courier New', monospace; }
+  canvas { display: block; }
 
-.chat-area{
-  width:100%;
-  height:100vh;
-}
+  #hud {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    pointer-events: none;
+    z-index: 10;
+  }
 
-iframe{
-  width:100%;
-  height:100%;
-  border:none;
-}
+  #speedometer {
+    position: fixed;
+    bottom: 160px;
+    right: 24px;
+    width: 120px;
+    height: 120px;
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  .speed-ring {
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.7);
+    border: 2px solid rgba(226,37,37,0.6);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 20px rgba(226,37,37,0.3), inset 0 0 20px rgba(0,0,0,0.5);
+  }
+
+  #speed-value {
+    font-size: 36px;
+    font-weight: bold;
+    color: #fff;
+    letter-spacing: -1px;
+    line-height: 1;
+  }
+
+  #speed-unit {
+    font-size: 10px;
+    color: rgba(226,37,37,0.9);
+    letter-spacing: 3px;
+    margin-top: 2px;
+  }
+
+  #top-hud {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 16px 20px;
+  }
+
+  #logo {
+    font-size: 22px;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: 8px;
+    text-shadow: 0 0 20px rgba(226,37,37,0.8);
+  }
+
+  #battery-bar {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+  }
+
+  #battery-label {
+    font-size: 9px;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 2px;
+  }
+
+  #battery-track {
+    width: 80px;
+    height: 8px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+
+  #battery-fill {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, #e22525, #ff6b6b);
+    border-radius: 4px;
+    transition: width 0.5s;
+  }
+
+  #gear-display {
+    position: fixed;
+    bottom: 160px;
+    left: 24px;
+    z-index: 10;
+    pointer-events: none;
+    font-size: 48px;
+    font-weight: 900;
+    color: rgba(255,255,255,0.15);
+    letter-spacing: 2px;
+  }
+
+  /* Virtual Joystick */
+  #joystick-zone {
+    position: fixed;
+    bottom: 20px;
+    left: 0;
+    right: 0;
+    height: 140px;
+    z-index: 20;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  #joystick-base {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+    border: 2px solid rgba(255,255,255,0.15);
+    position: relative;
+    touch-action: none;
+    user-select: none;
+  }
+
+  #joystick-knob {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.9), rgba(226,37,37,0.8));
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 4px 15px rgba(226,37,37,0.5);
+    pointer-events: none;
+  }
+
+  #loading-screen {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    transition: opacity 0.8s;
+  }
+
+  #loading-logo {
+    font-size: 48px;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: 12px;
+    margin-bottom: 8px;
+    text-shadow: 0 0 40px rgba(226,37,37,0.6);
+  }
+
+  #loading-sub {
+    font-size: 10px;
+    color: rgba(226,37,37,0.8);
+    letter-spacing: 4px;
+    margin-bottom: 48px;
+  }
+
+  #loading-bar-track {
+    width: 200px;
+    height: 2px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 1px;
+    overflow: hidden;
+  }
+
+  #loading-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #e22525, #ff6b6b);
+    border-radius: 1px;
+    transition: width 0.3s;
+  }
+
+  #loading-text {
+    margin-top: 12px;
+    font-size: 9px;
+    color: rgba(255,255,255,0.3);
+    letter-spacing: 3px;
+  }
+
+  /* Camera hint */
+  #cam-hint {
+    position: fixed;
+    top: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 9px;
+    color: rgba(255,255,255,0.25);
+    letter-spacing: 3px;
+    pointer-events: none;
+    z-index: 10;
+  }
 </style>
-
 </head>
-
 <body>
 
-<div class="chat-area">
-  <iframe src="https://www.chatbase.co/chatbot-iframe/0rVEhcHetmO3nRyKmrhOx"></iframe>
+<div id="loading-screen">
+  <div id="loading-logo">TESLA</div>
+  <div id="loading-sub">MODEL S PLAID</div>
+  <div id="loading-bar-track"><div id="loading-bar-fill"></div></div>
+  <div id="loading-text">INITIALIZING...</div>
 </div>
 
+<div id="hud">
+  <div id="top-hud">
+    <div id="logo">TESLA</div>
+    <div id="battery-bar">
+      <div id="battery-label">BATTERY</div>
+      <div id="battery-track"><div id="battery-fill"></div></div>
+    </div>
+  </div>
+</div>
+
+<div id="cam-hint">SWIPE TO ROTATE CAMERA</div>
+<div id="gear-display">D</div>
+
+<div id="speedometer">
+  <div class="speed-ring">
+    <div id="speed-value">0</div>
+    <div id="speed-unit">KM/H</div>
+  </div>
+</div>
+
+<div id="joystick-zone">
+  <div id="joystick-base">
+    <div id="joystick-knob"></div>
+  </div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.js"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
+
+// ─── GLTFLoader (inline minimal) ───────────────────────────────────────────
+// Use CDN script tag approach instead
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// GLTFLoader from CDN
+const GLTF_LOADER_URL = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js';
+const DRACO_URL = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js';
+
+function loadScript(url) {
+  return new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = url;
+    s.onload = res;
+    s.onerror = rej;
+    document.head.appendChild(s);
+  });
+}
+
+async function init() {
+  await loadScript(DRACO_URL);
+  await loadScript(GLTF_LOADER_URL);
+  startGame();
+}
+
+function startGame() {
+  const loadingBar = document.getElementById('loading-bar-fill');
+  const loadingText = document.getElementById('loading-text');
+  const loadingScreen = document.getElementById('loading-screen');
+
+  // ─── Scene ───────────────────────────────────────────────────────────────
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x87CEEB);
+  scene.fog = new THREE.Fog(0x87CEEB, 80, 200);
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  document.body.insertBefore(renderer.domElement, document.body.firstChild);
+
+  const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 500);
+  camera.position.set(0, 5, -12);
+
+  // ─── Lights ──────────────────────────────────────────────────────────────
+  const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+  scene.add(ambient);
+
+  const sun = new THREE.DirectionalLight(0xfff5e0, 1.2);
+  sun.position.set(50, 80, 30);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(2048, 2048);
+  sun.shadow.camera.near = 0.5;
+  sun.shadow.camera.far = 300;
+  sun.shadow.camera.left = -100;
+  sun.shadow.camera.right = 100;
+  sun.shadow.camera.top = 100;
+  sun.shadow.camera.bottom = -100;
+  scene.add(sun);
+
+  // ─── Ground ──────────────────────────────────────────────────────────────
+  const groundGeo = new THREE.PlaneGeometry(400, 400);
+  const groundMat = new THREE.MeshLambertMaterial({ color: 0x4a7c3f });
+  const ground = new THREE.Mesh(groundGeo, groundMat);
+  ground.rotation.x = -Math.PI / 2;
+  ground.receiveShadow = true;
+  scene.add(ground);
+
+  // ─── Road network ────────────────────────────────────────────────────────
+  const roadMat = new THREE.MeshLambertMaterial({ color: 0x333333 });
+  const lineMat = new THREE.MeshLambertMaterial({ color: 0xffee00 });
+  const sidewalkMat = new THREE.MeshLambertMaterial({ color: 0x888888 });
+
+  function makeRoad(x, z, w, l, rot) {
+    const road = new THREE.Mesh(new THREE.PlaneGeometry(w, l), roadMat);
+    road.rotation.x = -Math.PI / 2;
+    road.rotation.z = rot || 0;
+    road.position.set(x, 0.01, z);
+    road.receiveShadow = true;
+    scene.add(road);
+
+    // sidewalks
+    [-1, 1].forEach(side => {
+      const sw = new THREE.Mesh(new THREE.PlaneGeometry(2, l), sidewalkMat);
+      sw.rotation.x = -Math.PI / 2;
+      sw.rotation.z = rot || 0;
+      const offset = (w / 2 + 1) * side;
+      sw.position.set(x + (rot ? 0 : offset), 0.02, z + (rot ? offset : 0));
+      sw.receiveShadow = true;
+      scene.add(sw);
+    });
+
+    // center line dashes
+    for (let i = -l / 2 + 5; i < l / 2; i += 10) {
+      const dash = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 4), lineMat);
+      dash.rotation.x = -Math.PI / 2;
+      dash.rotation.z = rot || 0;
+      dash.position.set(
+        x + (rot ? i : 0),
+        0.03,
+        z + (rot ? 0 : i)
+      );
+      scene.add(dash);
+    }
+  }
+
+  // Main roads
+  makeRoad(0, 0, 10, 300);       // North-South main
+  makeRoad(0, 0, 300, 10, Math.PI/2); // East-West main
+  makeRoad(60, 0, 8, 200);       // side road east
+  makeRoad(-60, 0, 8, 200);      // side road west
+  makeRoad(0, 60, 200, 8, Math.PI/2); // side road north
+  makeRoad(0, -60, 200, 8, Math.PI/2); // side road south
+
+  // ─── Buildings ───────────────────────────────────────────────────────────
+  const buildingColors = [0xd4b896, 0xc0cdd4, 0x8fa8b8, 0xb8a89a, 0x9ab09a, 0xc8b8a8];
+  const buildings = [];
+
+  const BUILDING_DEFS = [
+    // [x, z, w, d, h]
+    [20, 20, 12, 12, 20], [20, 20, 10, 10, 35],
+    [-20, 20, 14, 10, 15], [-20, 20, 10, 8, 28],
+    [20, -20, 10, 14, 22], [-20, -20, 12, 12, 18],
+    [80, 30, 15, 15, 25], [-80, 30, 12, 18, 30],
+    [80, -30, 18, 12, 20], [-80, -30, 14, 14, 40],
+    [30, 80, 12, 12, 18], [-30, 80, 16, 10, 22],
+    [30, -80, 10, 16, 28], [-30, -80, 12, 12, 35],
+    [100, 0, 20, 20, 15], [-100, 0, 16, 16, 30],
+    [0, 100, 18, 18, 20], [0, -100, 20, 15, 25],
+    [50, 50, 14, 14, 18], [-50, 50, 12, 16, 24],
+    [50, -50, 16, 12, 20], [-50, -50, 14, 14, 32],
+    [120, 40, 22, 18, 18], [-120, -40, 18, 22, 22],
+  ];
+
+  BUILDING_DEFS.forEach(([x, z, w, d, h]) => {
+    const color = buildingColors[Math.floor(Math.random() * buildingColors.length)];
+    const mat = new THREE.MeshLambertMaterial({ color });
+    const geo = new THREE.BoxGeometry(w, h, d);
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(x, h / 2, z);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    scene.add(mesh);
+
+    // roof detail
+    const roofMat = new THREE.MeshLambertMaterial({ color: 0x555555 });
+    const roof = new THREE.Mesh(new THREE.BoxGeometry(w, 0.5, d), roofMat);
+    roof.position.set(x, h + 0.25, z);
+    scene.add(roof);
+
+    // windows
+    const winMat = new THREE.MeshLambertMaterial({ color: 0xadd8e6, emissive: 0x223344 });
+    for (let fy = 2; fy < h - 1; fy += 4) {
+      for (let fx = -w / 2 + 2; fx < w / 2; fx += 3) {
+        const win = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 2), winMat);
+        win.position.set(x + fx, fy + 1, z + d / 2 + 0.01);
+        scene.add(win);
+      }
+    }
+
+    // AABB for collision
+    buildings.push({
+      minX: x - w / 2 - 1,
+      maxX: x + w / 2 + 1,
+      minZ: z - d / 2 - 1,
+      maxZ: z + d / 2 + 1,
+    });
+  });
+
+  // Trees
+  function makeTree(x, z) {
+    const trunk = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.3, 0.4, 2, 6),
+      new THREE.MeshLambertMaterial({ color: 0x5c3a1e })
+    );
+    trunk.position.set(x, 1, z);
+    trunk.castShadow = true;
+    scene.add(trunk);
+
+    const leaves = new THREE.Mesh(
+      new THREE.SphereGeometry(2, 8, 6),
+      new THREE.MeshLambertMaterial({ color: 0x2d7a2d })
+    );
+    leaves.position.set(x, 4, z);
+    leaves.castShadow = true;
+    scene.add(leaves);
+  }
+
+  const treePositions = [
+    [14,14],[14,-14],[-14,14],[-14,-14],
+    [14,80],[-14,80],[14,-80],[-14,-80],
+    [80,14],[80,-14],[-80,14],[-80,-14],
+    [35,35],[-35,35],[35,-35],[-35,-35],
+    [70,70],[-70,70],[70,-70],[-70,-70],
+  ];
+  treePositions.forEach(([x,z]) => makeTree(x, z));
+
+  // Sky gradient
+  const skyGeo = new THREE.SphereGeometry(300, 16, 8);
+  const skyMat = new THREE.MeshBasicMaterial({
+    color: 0x87CEEB, side: THREE.BackSide
+  });
+  scene.add(new THREE.Mesh(skyGeo, skyMat));
+
+  // ─── Car (placeholder box while GLB loads) ───────────────────────────────
+  const carGroup = new THREE.Group();
+  scene.add(carGroup);
+  carGroup.position.set(0, 0, 0);
+
+  // Fallback car mesh (shown until GLB loads)
+  const bodyMat = new THREE.MeshLambertMaterial({ color: 0xcc2222 });
+  const carBody = new THREE.Mesh(new THREE.BoxGeometry(2, 0.7, 4.5), bodyMat);
+  carBody.position.y = 0.65;
+  carBody.castShadow = true;
+  carGroup.add(carBody);
+
+  const cabinMat = new THREE.MeshLambertMaterial({ color: 0xaa1111 });
+  const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.6, 2.5), cabinMat);
+  cabin.position.set(0, 1.25, -0.2);
+  cabin.castShadow = true;
+  carGroup.add(cabin);
+
+  const wheelMat = new THREE.MeshLambertMaterial({ color: 0x111111 });
+  [[0.95,0.35,1.5],[−0.95,0.35,1.5],[0.95,0.35,-1.5],[-0.95,0.35,-1.5]].forEach(([x,y,z]) => {
+    const w = new THREE.Mesh(new THREE.CylinderGeometry(0.35,0.35,0.25,12), wheelMat);
+    w.rotation.z = Math.PI/2;
+    w.position.set(x,y,z);
+    carGroup.add(w);
+  });
+
+  // ─── Load GLB ────────────────────────────────────────────────────────────
+  let glbLoaded = false;
+  const loader = new THREE.GLTFLoader();
+  const dracoLoader = new THREE.DRACOLoader();
+  dracoLoader.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/libs/draco/');
+  loader.setDRACOLoader(dracoLoader);
+
+  // Load from user upload
+  const glbUrl = 'tesla_model_s_plaid_2023_(1).glb';
+
+  // We'll use a FileReader approach via fetch (works in browser context)
+  loadingText.textContent = 'LOADING MODEL...';
+
+  fetch(glbUrl)
+    .then(r => r.arrayBuffer())
+    .then(buffer => {
+      loadingBar.style.width = '60%';
+      loader.parse(buffer, '', (gltf) => {
+        const model = gltf.scene;
+        model.scale.setScalar(1);
+
+        // Auto-scale to fit
+        const box = new THREE.Box3().setFromObject(model);
+        const size = box.getSize(new THREE.Vector3());
+        const maxDim = Math.max(size.x, size.y, size.z);
+        const targetSize = 4.5;
+        model.scale.setScalar(targetSize / maxDim);
+
+        box.setFromObject(model);
+        const min = box.getMin(new THREE.Vector3());
+        model.position.y = -min.y;
+
+        model.traverse(child => {
+          if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+          }
+        });
+
+        // Remove placeholder
+        carGroup.remove(carBody);
+        carGroup.remove(cabin);
+
+        carGroup.add(model);
+        glbLoaded = true;
+        loadingBar.style.width = '100%';
+        loadingText.textContent = 'READY';
+
+        setTimeout(() => {
+          loadingScreen.style.opacity = '0';
+          setTimeout(() => loadingScreen.style.display = 'none', 800);
+        }, 400);
+      }, err => {
+        console.error('GLB parse error:', err);
+        finishLoadingFallback();
+      });
+    })
+    .catch(() => {
+      finishLoadingFallback();
+    });
+
+  function finishLoadingFallback() {
+    loadingBar.style.width = '100%';
+    loadingText.textContent = 'READY (FALLBACK MODEL)';
+    setTimeout(() => {
+      loadingScreen.style.opacity = '0';
+      setTimeout(() => loadingScreen.style.display = 'none', 800);
+    }, 600);
+  }
+
+  loadingBar.style.width = '30%';
+
+  // ─── Car physics ─────────────────────────────────────────────────────────
+  let speed = 0;
+  let angle = 0; // car heading (radians)
+  const MAX_SPEED = 0.55;
+  const ACCEL = 0.018;
+  const BRAKE = 0.025;
+  const FRICTION = 0.012;
+  const STEER = 0.045;
+  let battery = 1.0;
+
+  // ─── Joystick ────────────────────────────────────────────────────────────
+  const joyBase = document.getElementById('joystick-base');
+  const joyKnob = document.getElementById('joystick-knob');
+  let joyActive = false;
+  let joyId = null;
+  let joyDx = 0, joyDy = 0;
+  const JOY_RADIUS = 32;
+
+  joyBase.addEventListener('touchstart', e => {
+    e.preventDefault();
+    const t = e.changedTouches[0];
+    joyId = t.identifier;
+    joyActive = true;
+  }, { passive: false });
+
+  document.addEventListener('touchmove', e => {
+    if (!joyActive) return;
+    for (let t of e.changedTouches) {
+      if (t.identifier === joyId) {
+        const rect = joyBase.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        let dx = t.clientX - cx;
+        let dy = t.clientY - cy;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist > JOY_RADIUS) {
+          dx = dx / dist * JOY_RADIUS;
+          dy = dy / dist * JOY_RADIUS;
+        }
+        joyDx = dx / JOY_RADIUS;
+        joyDy = dy / JOY_RADIUS;
+        joyKnob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+      }
+    }
+  }, { passive: false });
+
+  document.addEventListener('touchend', e => {
+    for (let t of e.changedTouches) {
+      if (t.identifier === joyId) {
+        joyActive = false;
+        joyDx = 0; joyDy = 0;
+        joyKnob.style.transform = 'translate(-50%, -50%)';
+      }
+    }
+  });
+
+  // Keyboard fallback
+  const keys = {};
+  document.addEventListener('keydown', e => keys[e.key] = true);
+  document.addEventListener('keyup', e => keys[e.key] = false);
+
+  // ─── Camera swipe ────────────────────────────────────────────────────────
+  let camAngle = Math.PI; // behind car
+  let camAngleV = 0.3;    // vertical
+  let swipeStartX = 0, swipeStartY = 0;
+  let swipeCamAngle = camAngle;
+  let swipeCamAngleV = camAngleV;
+  let isSwiping = false;
+  let swipeTouchId = null;
+
+  document.addEventListener('touchstart', e => {
+    for (let t of e.changedTouches) {
+      if (t.target === joyBase || joyBase.contains(t.target)) continue;
+      if (!isSwiping) {
+        isSwiping = true;
+        swipeTouchId = t.identifier;
+        swipeStartX = t.clientX;
+        swipeStartY = t.clientY;
+        swipeCamAngle = camAngle;
+        swipeCamAngleV = camAngleV;
+      }
+    }
+  }, { passive: true });
+
+  document.addEventListener('touchmove', e => {
+    for (let t of e.changedTouches) {
+      if (t.identifier === swipeTouchId && isSwiping) {
+        const dx = t.clientX - swipeStartX;
+        const dy = t.clientY - swipeStartY;
+        camAngle = swipeCamAngle + dx * 0.008;
+        camAngleV = Math.max(0.1, Math.min(0.8, swipeCamAngleV - dy * 0.005));
+      }
+    }
+  }, { passive: true });
+
+  document.addEventListener('touchend', e => {
+    for (let t of e.changedTouches) {
+      if (t.identifier === swipeTouchId) isSwiping = false;
+    }
+  });
+
+  // Mouse camera
+  let mouseDown = false;
+  let mouseStartX = 0, mouseStartY = 0;
+  let mouseCamAngle = camAngle, mouseCamAngleV = camAngleV;
+  renderer.domElement.addEventListener('mousedown', e => {
+    mouseDown = true;
+    mouseStartX = e.clientX;
+    mouseStartY = e.clientY;
+    mouseCamAngle = camAngle;
+    mouseCamAngleV = camAngleV;
+  });
+  document.addEventListener('mousemove', e => {
+    if (!mouseDown) return;
+    camAngle = mouseCamAngle + (e.clientX - mouseStartX) * 0.008;
+    camAngleV = Math.max(0.1, Math.min(0.8, mouseCamAngleV - (e.clientY - mouseStartY) * 0.005));
+  });
+  document.addEventListener('mouseup', () => mouseDown = false);
+
+  // ─── HUD refs ────────────────────────────────────────────────────────────
+  const speedEl = document.getElementById('speed-value');
+  const batteryFill = document.getElementById('battery-fill');
+
+  // ─── Collision ───────────────────────────────────────────────────────────
+  function checkCollision(nx, nz) {
+    for (const b of buildings) {
+      if (nx > b.minX && nx < b.maxX && nz > b.minZ && nz < b.maxZ) return true;
+    }
+    return false;
+  }
+
+  // ─── Game loop ───────────────────────────────────────────────────────────
+  const CAM_DIST = 12;
+  const CAM_HEIGHT = 5;
+
+  function update() {
+    // Input
+    const accelInput = (keys['ArrowUp'] || keys['w']) ? 1 : (joyDy < -0.2 ? -joyDy : 0);
+    const brakeInput = (keys['ArrowDown'] || keys['s']) ? 1 : (joyDy > 0.2 ? joyDy : 0);
+    const steerInput = (keys['ArrowRight'] || keys['d']) ? 1 : (keys['ArrowLeft'] || keys['a']) ? -1 : joyDx;
+
+    // Speed
+    if (accelInput > 0) speed += ACCEL * accelInput;
+    else if (brakeInput > 0) speed -= BRAKE * brakeInput;
+    else speed *= (1 - FRICTION);
+
+    speed = Math.max(-MAX_SPEED * 0.4, Math.min(MAX_SPEED, speed));
+
+    // Steering (only when moving)
+    if (Math.abs(speed) > 0.01) {
+      angle -= steerInput * STEER * (speed / MAX_SPEED);
+    }
+
+    carGroup.rotation.y = angle;
+
+    // Movement
+    const dx = Math.sin(angle) * speed;
+    const dz = Math.cos(angle) * speed;
+    const nx = carGroup.position.x + dx;
+    const nz = carGroup.position.z + dz;
+
+    // Boundary
+    const BOUND = 180;
+    if (!checkCollision(nx, nz) && Math.abs(nx) < BOUND && Math.abs(nz) < BOUND) {
+      carGroup.position.x = nx;
+      carGroup.position.z = nz;
+    } else {
+      speed *= -0.3;
+    }
+
+    // Battery drain
+    battery = Math.max(0, battery - Math.abs(speed) * 0.00005);
+    batteryFill.style.width = (battery * 100) + '%';
+
+    // Camera
+    const camX = carGroup.position.x + Math.sin(angle + camAngle) * CAM_DIST;
+    const camZ = carGroup.position.z + Math.cos(angle + camAngle) * CAM_DIST;
+    const camY = carGroup.position.y + CAM_HEIGHT + camAngleV * 6;
+    camera.position.lerp(new THREE.Vector3(camX, camY, camZ), 0.1);
+    camera.lookAt(carGroup.position.x, carGroup.position.y + 1, carGroup.position.z);
+
+    // HUD
+    const kmh = Math.round(Math.abs(speed) / MAX_SPEED * 250);
+    speedEl.textContent = kmh;
+
+    // Gear
+    document.getElementById('gear-display').textContent = speed < -0.01 ? 'R' : 'D';
+  }
+
+  function animate() {
+    requestAnimationFrame(animate);
+    update();
+    renderer.render(scene, camera);
+  }
+
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+
+  animate();
+}
+
+init();
+</script>
 </body>
 </html>
