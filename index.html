@@ -2,775 +2,136 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>AUDI A7 — DRIVE</title>
+<title>ゆうたのひみつのサイト</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: #000; overflow: hidden; font-family: 'Helvetica Neue', Arial, sans-serif; }
-  #canvas-container { width: 100vw; height: 100vh; position: relative; }
-  canvas { display: block; }
-
-  /* HUD */
-  #hud {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    pointer-events: none; z-index: 10;
-  }
-  #speedometer {
-    position: absolute; bottom: 30px; right: 24px;
-    text-align: center;
-  }
-  #speed-value {
-    font-size: 64px; font-weight: 100; color: #fff; letter-spacing: -2px;
-    line-height: 1; text-shadow: 0 0 30px rgba(255,255,255,0.4);
-  }
-  #speed-unit {
-    font-size: 12px; color: rgba(255,255,255,0.5); letter-spacing: 4px;
-    text-transform: uppercase; margin-top: 2px;
-  }
-  #gear-display {
-    position: absolute; bottom: 30px; left: 24px;
-    font-size: 48px; font-weight: 100; color: #fff;
-    letter-spacing: -1px;
-  }
-  #gear-label {
-    font-size: 10px; color: rgba(255,255,255,0.4); letter-spacing: 3px;
-    text-transform: uppercase;
-  }
-  #rpm-bar-container {
-    position: absolute; bottom: 110px; left: 50%; transform: translateX(-50%);
-    width: 200px;
-  }
-  #rpm-label {
-    font-size: 9px; color: rgba(255,255,255,0.3); letter-spacing: 3px;
-    text-align: center; margin-bottom: 4px;
-  }
-  #rpm-bar {
-    height: 3px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden;
-  }
-  #rpm-fill {
-    height: 100%; width: 0%; background: linear-gradient(90deg, #fff 0%, #ff4444 100%);
-    transition: width 0.05s; border-radius: 2px;
-  }
-
-  /* Brand watermark */
-  #brand {
-    position: absolute; top: 24px; left: 50%; transform: translateX(-50%);
-    font-size: 11px; letter-spacing: 8px; color: rgba(255,255,255,0.25);
-    text-transform: uppercase;
-  }
-
-  /* Loading screen */
-  #loading {
-    position: fixed; inset: 0; background: #000; z-index: 100;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    transition: opacity 0.8s ease;
-  }
-  #loading-logo {
-    font-size: 13px; letter-spacing: 12px; color: rgba(255,255,255,0.8);
-    text-transform: uppercase; margin-bottom: 60px;
-  }
-  #loading-car-name {
-    font-size: 42px; font-weight: 100; color: #fff; letter-spacing: 3px;
-    margin-bottom: 8px;
-  }
-  #loading-subtitle {
-    font-size: 11px; letter-spacing: 6px; color: rgba(255,255,255,0.3);
-    margin-bottom: 60px; text-transform: uppercase;
-  }
-  #progress-bar {
-    width: 200px; height: 1px; background: rgba(255,255,255,0.1);
-  }
-  #progress-fill {
-    height: 100%; width: 0%; background: #fff; transition: width 0.3s ease;
-  }
-  #loading-status {
-    font-size: 10px; letter-spacing: 3px; color: rgba(255,255,255,0.2);
-    margin-top: 16px; text-transform: uppercase;
-  }
-
-  /* Controls hint */
-  #controls-hint {
-    position: absolute; top: 24px; right: 24px;
-    font-size: 9px; letter-spacing: 2px; color: rgba(255,255,255,0.2);
-    text-align: right; line-height: 1.8;
-  }
-
-  /* Mobile joystick */
-  #mobile-controls {
-    position: fixed; bottom: 0; left: 0; width: 100%; height: 200px;
-    pointer-events: none; z-index: 20; display: none;
-  }
-  .joy-zone {
-    position: absolute; bottom: 20px;
-    width: 120px; height: 120px;
-    pointer-events: all;
-  }
-  #joy-left { left: 20px; }
-  #joy-right { right: 20px; }
-  .joy-bg {
-    width: 100%; height: 100%; border-radius: 50%;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.1);
-    position: relative;
-  }
-  .joy-knob {
-    width: 44px; height: 44px; border-radius: 50%;
-    background: rgba(255,255,255,0.2);
-    border: 1px solid rgba(255,255,255,0.3);
-    position: absolute; top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    transition: transform 0.05s;
-  }
-  #brake-btn {
-    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
-    width: 70px; height: 70px; border-radius: 50%;
-    background: rgba(255,50,50,0.15); border: 1px solid rgba(255,50,50,0.3);
-    pointer-events: all; z-index: 20; display: none;
-    align-items: center; justify-content: center;
-    font-size: 9px; letter-spacing: 2px; color: rgba(255,100,100,0.6);
-  }
-  #camera-btn {
-    position: fixed; top: 24px; left: 24px;
-    width: 44px; height: 44px; border-radius: 50%;
-    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
-    pointer-events: all; z-index: 20; display: none;
-    align-items: center; justify-content: center;
-    font-size: 18px; cursor: pointer;
-  }
+body {
+  margin: 0;
+  font-family: "Comic Sans MS", sans-serif;
+  background: linear-gradient(45deg, pink, lightblue, yellow);
+  text-align: center;
+  overflow-x: hidden;
+}
+h1 {
+  font-size: 40px;
+  animation: rainbow 3s infinite;
+}
+@keyframes rainbow {
+  0% {color:red;}
+  25% {color:blue;}
+  50% {color:green;}
+  75% {color:orange;}
+  100% {color:red;}
+}
+button {
+  padding: 10px 20px;
+  font-size: 16px;
+  margin: 5px;
+  border-radius: 20px;
+  border: none;
+  background: hotpink;
+  color: white;
+  cursor: pointer;
+}
+#loveMeter {
+  width: 200px;
+  height: 20px;
+  background: #ddd;
+  margin: 10px auto;
+}
+#loveBar {
+  height: 100%;
+  width: 0%;
+  background: red;
+}
+.marquee {
+  font-size: 20px;
+  color: purple;
+  animation: move 5s linear infinite;
+}
+@keyframes move {
+  0% {transform: translateX(100%);}
+  100% {transform: translateX(-100%);}
+}
+footer {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  font-size: 12px;
+}
 </style>
 </head>
 <body>
-<div id="loading">
-  <div id="loading-logo">Audi</div>
-  <div id="loading-car-name">A7 55 TFSI</div>
-  <div id="loading-subtitle">Quattro · S line</div>
-  <div id="progress-bar"><div id="progress-fill"></div></div>
-  <div id="loading-status">Loading model...</div>
-</div>
 
-<div id="canvas-container"></div>
+<h1>💖ゆうたのひみつのサイト💖</h1>
 
-<div id="hud">
-  <div id="brand">Audi A7 Drive</div>
-  <div id="controls-hint">
-    W / ↑ · Accelerate<br>
-    S / ↓ · Brake<br>
-    A D / ← → · Steer<br>
-    C · Camera<br>
-    Space · Handbrake
-  </div>
-  <div id="speedometer">
-    <div id="speed-value">0</div>
-    <div id="speed-unit">km/h</div>
-  </div>
-  <div id="gear-display">
-    <div id="gear-label">Gear</div>
-    <div id="gear-value">N</div>
-  </div>
-  <div id="rpm-bar-container">
-    <div id="rpm-label">RPM</div>
-    <div id="rpm-bar"><div id="rpm-fill"></div></div>
-  </div>
-</div>
+<div class="marquee">好きな人いる人は押してね↓↓↓</div>
 
-<!-- Mobile -->
-<div id="mobile-controls">
-  <div class="joy-zone" id="joy-left">
-    <div class="joy-bg"><div class="joy-knob" id="knob-left"></div></div>
-  </div>
-  <div class="joy-zone" id="joy-right">
-    <div class="joy-bg"><div class="joy-knob" id="knob-right"></div></div>
-  </div>
-</div>
-<div id="brake-btn">BRAKE</div>
-<div id="camera-btn">📷</div>
+<button onclick="alert('好きな人いるでしょ？バレてるよ😏')">好きな人ボタン</button>
+<button onclick="randomConfession()">告白ボタン</button>
+<button onclick="playSound()">謎の音</button>
+<button onclick="changeBg()">背景ガチャ</button>
 
-<script type="importmap">
-{
-  "imports": {
-    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
-  }
-}
-</script>
-<script type="module">
-import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+<h2>💘モテ度メーター💘</h2>
+<div id="loveMeter"><div id="loveBar"></div></div>
+<button onclick="upLove()">モテ度アップ</button>
 
-// ── Scene setup ──────────────────────────────────────────
-const scene = new THREE.Scene();
-scene.fog = new THREE.FogExp2(0x0a0a14, 0.008);
+<h2>🧠IQ診断（たぶん）</h2>
+<button onclick="iqTest()">測定する</button>
+<p id="iqResult"></p>
 
-const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 0.8;
-renderer.outputColorSpace = THREE.SRGBColorSpace;
-document.getElementById('canvas-container').appendChild(renderer.domElement);
+<h2>💬ひとこと投稿</h2>
+<input id="msg" placeholder="なんか書いて">
+<button onclick="addMsg()">投稿</button>
+<ul id="chat"></ul>
 
-const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 2000);
-let cameraMode = 0; // 0=chase, 1=hood, 2=orbit
-camera.position.set(0, 4, -12);
+<footer>
+  チャッピー作（天才AI）
+</footer>
 
-// ── Lighting ──────────────────────────────────────────────
-const ambientLight = new THREE.AmbientLight(0x112244, 1.2);
-scene.add(ambientLight);
+<script>
+let love = 0;
 
-const sunLight = new THREE.DirectionalLight(0xffeedd, 2.5);
-sunLight.position.set(100, 200, 100);
-sunLight.castShadow = true;
-sunLight.shadow.mapSize.set(2048, 2048);
-sunLight.shadow.camera.near = 0.1;
-sunLight.shadow.camera.far = 600;
-sunLight.shadow.camera.left = -200;
-sunLight.shadow.camera.right = 200;
-sunLight.shadow.camera.top = 200;
-sunLight.shadow.camera.bottom = -200;
-scene.add(sunLight);
-
-const fillLight = new THREE.DirectionalLight(0x4466ff, 0.6);
-fillLight.position.set(-100, 50, -100);
-scene.add(fillLight);
-
-// ── Sky ───────────────────────────────────────────────────
-function buildSky() {
-  const sky = new THREE.Mesh(
-    new THREE.SphereGeometry(1000, 32, 16),
-    new THREE.ShaderMaterial({
-      side: THREE.BackSide,
-      uniforms: {
-        topColor: { value: new THREE.Color(0x020408) },
-        bottomColor: { value: new THREE.Color(0x0a1020) },
-        horizon: { value: new THREE.Color(0x0f1830) },
-        offset: { value: 33 }, exponent: { value: 0.4 }
-      },
-      vertexShader: `
-        varying vec3 vWorldPos;
-        void main() { vWorldPos = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }
-      `,
-      fragmentShader: `
-        uniform vec3 topColor, bottomColor, horizon;
-        uniform float offset, exponent;
-        varying vec3 vWorldPos;
-        void main() {
-          float h = normalize(vWorldPos + offset).y;
-          vec3 col = h > 0.0 ? mix(horizon, topColor, pow(max(h,0.0), exponent)) : mix(horizon, bottomColor, pow(max(-h,0.0), exponent));
-          gl_FragColor = vec4(col, 1.0);
-        }
-      `
-    })
-  );
-  scene.add(sky);
-}
-buildSky();
-
-// ── Stars ─────────────────────────────────────────────────
-function buildStars() {
-  const geom = new THREE.BufferGeometry();
-  const verts = [];
-  for (let i = 0; i < 3000; i++) {
-    const theta = Math.random() * Math.PI * 2;
-    const phi = Math.acos(Math.random() * 2 - 1);
-    const r = 900;
-    verts.push(r * Math.sin(phi) * Math.cos(theta), r * Math.cos(phi), r * Math.sin(phi) * Math.sin(theta));
-  }
-  geom.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
-  const mat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.8, sizeAttenuation: true });
-  scene.add(new THREE.Points(geom, mat));
-}
-buildStars();
-
-// ── Track / World ──────────────────────────────────────────
-const TRACK = {
-  width: 20,
-  segments: []
-};
-
-function buildWorld() {
-  // Ground plane
-  const groundMat = new THREE.MeshLambertMaterial({ color: 0x0a0f0a });
-  const ground = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000, 40, 40), groundMat);
-  ground.rotation.x = -Math.PI / 2;
-  ground.receiveShadow = true;
-  scene.add(ground);
-
-  // City blocks / buildings
-  buildBuildings();
-  buildRoads();
-  buildStreetLights();
+function upLove() {
+  love += Math.floor(Math.random() * 30);
+  if(love > 100) love = 100;
+  document.getElementById("loveBar").style.width = love + "%";
 }
 
-function buildBuildings() {
-  const bldMats = [
-    new THREE.MeshLambertMaterial({ color: 0x0d1117 }),
-    new THREE.MeshLambertMaterial({ color: 0x111820 }),
-    new THREE.MeshLambertMaterial({ color: 0x0f1520 }),
+function randomConfession() {
+  const msgs = [
+    "好きです（急）",
+    "いややっぱ無理",
+    "嘘ですごめん",
+    "でもちょっと好きかも",
+    "いや普通に好きだわ"
   ];
-  const windowMat = new THREE.MeshLambertMaterial({ color: 0xffffaa, emissive: 0xffffaa, emissiveIntensity: 0.3 });
-
-  for (let i = 0; i < 120; i++) {
-    const w = 8 + Math.random() * 20;
-    const h = 15 + Math.random() * 80;
-    const d = 8 + Math.random() * 20;
-    const bld = new THREE.Mesh(
-      new THREE.BoxGeometry(w, h, d),
-      bldMats[Math.floor(Math.random() * bldMats.length)]
-    );
-    const angle = Math.random() * Math.PI * 2;
-    const dist = 80 + Math.random() * 400;
-    bld.position.set(Math.cos(angle) * dist, h / 2, Math.sin(angle) * dist);
-    bld.castShadow = true;
-    bld.receiveShadow = true;
-    scene.add(bld);
-
-    // Windows
-    for (let wy = 1; wy < Math.floor(h / 5); wy++) {
-      for (let wx = 0; wx < Math.floor(w / 3); wx++) {
-        if (Math.random() > 0.4) {
-          const win = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 1.5), windowMat);
-          win.position.set(bld.position.x - w / 2 + wx * 3 + 1.5, wy * 5, bld.position.z + d / 2 + 0.01);
-          scene.add(win);
-        }
-      }
-    }
-  }
+  alert(msgs[Math.floor(Math.random()*msgs.length)]);
 }
 
-function buildRoads() {
-  // Main circuit road
-  const roadMat = new THREE.MeshLambertMaterial({ color: 0x111111 });
-  const lineMat = new THREE.MeshLambertMaterial({ color: 0xffffee });
-
-  // Circular track
-  const trackRadius = 120;
-  const trackSegs = 64;
-  for (let i = 0; i < trackSegs; i++) {
-    const a0 = (i / trackSegs) * Math.PI * 2;
-    const a1 = ((i + 1) / trackSegs) * Math.PI * 2;
-    const cx = (Math.cos(a0) + Math.cos(a1)) / 2 * trackRadius;
-    const cz = (Math.sin(a0) + Math.sin(a1)) / 2 * trackRadius;
-    const segAngle = Math.atan2(Math.sin(a1) - Math.sin(a0), Math.cos(a1) - Math.cos(a0));
-    const seg = new THREE.Mesh(new THREE.PlaneGeometry(TRACK.width * 1.5, trackRadius * 2 * Math.PI / trackSegs + 0.5), roadMat);
-    seg.rotation.x = -Math.PI / 2;
-    seg.rotation.z = -segAngle;
-    seg.position.set(cx, 0.01, cz);
-    seg.receiveShadow = true;
-    scene.add(seg);
-  }
-
-  // Store track points for car spawning
-  TRACK.centerRadius = trackRadius;
+function playSound() {
+  const audio = new Audio("https://www.soundjay.com/button/beep-07.wav");
+  audio.play();
 }
 
-function buildStreetLights() {
-  const poleGeo = new THREE.CylinderGeometry(0.08, 0.1, 6, 6);
-  const poleMat = new THREE.MeshLambertMaterial({ color: 0x333333 });
-  const lampGeo = new THREE.SphereGeometry(0.3, 8, 8);
-  const lampMat = new THREE.MeshLambertMaterial({ color: 0xffffcc, emissive: 0xffffcc, emissiveIntensity: 1 });
-
-  for (let i = 0; i < 24; i++) {
-    const angle = (i / 24) * Math.PI * 2;
-    const r = TRACK.width / 2 + 120 + 4;
-    const x = Math.cos(angle) * r;
-    const z = Math.sin(angle) * r;
-
-    const pole = new THREE.Mesh(poleGeo, poleMat);
-    pole.position.set(x, 3, z);
-    scene.add(pole);
-
-    const lamp = new THREE.Mesh(lampGeo, lampMat);
-    lamp.position.set(x, 6.3, z);
-    scene.add(lamp);
-
-    const pl = new THREE.PointLight(0xffeecc, 1.5, 40);
-    pl.position.set(x, 6, z);
-    scene.add(pl);
-  }
+function changeBg() {
+  const colors = ["pink", "lightblue", "yellow", "lime", "orange", "purple"];
+  document.body.style.background = colors[Math.floor(Math.random()*colors.length)];
 }
 
-buildWorld();
-
-// ── Car physics ────────────────────────────────────────────
-const car = {
-  position: new THREE.Vector3(120, 0.0, 0),
-  velocity: new THREE.Vector3(),
-  heading: Math.PI / 2,  // facing direction
-  speed: 0,
-  steer: 0,
-  engineForce: 0,
-  braking: false,
-  handbrake: false,
-  rpm: 800,
-  gear: 1,
-  wheelAngle: 0,
-  mesh: null,
-  wheelMeshes: [],
-  loaded: false,
-};
-
-const PHYSICS = {
-  maxSpeed: 60,         // m/s (~216 km/h)
-  acceleration: 18,
-  brakeForce: 35,
-  handbrakeForce: 50,
-  drag: 0.97,
-  steerMax: 0.045,
-  steerSpeed: 0.06,
-  steerReturn: 0.08,
-  wheelbase: 2.6,
-  gearRatios: [0, 3.6, 2.19, 1.41, 1.0, 0.74, 0.6],
-};
-
-const gearSpeeds = [0, 8, 16, 26, 38, 52, 60];
-
-// ── GLTF Loader ────────────────────────────────────────────
-const loader = new GLTFLoader();
-
-const progressFill = document.getElementById('progress-fill');
-const loadingStatus = document.getElementById('loading-status');
-
-loader.load(
-  './audi_a7_55_tfsi.gltf',
-  (gltf) => {
-    const model = gltf.scene;
-
-    // Auto-scale: fit within ~4.5m length
-    const box = new THREE.Box3().setFromObject(model);
-    const size = box.getSize(new THREE.Vector3());
-    const maxDim = Math.max(size.x, size.y, size.z);
-    const scale = 4.5 / maxDim;
-    model.scale.setScalar(scale);
-
-    // Re-center
-    const box2 = new THREE.Box3().setFromObject(model);
-    const center = box2.getCenter(new THREE.Vector3());
-    model.position.sub(center);
-
-    // Lift to ground
-    const box3 = new THREE.Box3().setFromObject(model);
-    model.position.y -= box3.min.y;
-
-    model.traverse((child) => {
-      if (child.isMesh) {
-        child.castShadow = true;
-        child.receiveShadow = true;
-        // Enhance materials
-        if (child.material) {
-          const mats = Array.isArray(child.material) ? child.material : [child.material];
-          mats.forEach(mat => {
-            if (mat.isMeshStandardMaterial || mat.isMeshPhysicalMaterial) {
-              mat.envMapIntensity = 1.5;
-            }
-          });
-        }
-      }
-    });
-
-    car.mesh = model;
-    car.loaded = true;
-    scene.add(model);
-
-    // Hide loading
-    const loading = document.getElementById('loading');
-    loading.style.opacity = '0';
-    setTimeout(() => loading.style.display = 'none', 800);
-
-    // Show mobile controls if touch device
-    if ('ontouchstart' in window) {
-      document.getElementById('mobile-controls').style.display = 'block';
-      document.getElementById('brake-btn').style.display = 'flex';
-      document.getElementById('camera-btn').style.display = 'flex';
-    }
-  },
-  (progress) => {
-    if (progress.total > 0) {
-      const pct = Math.round((progress.loaded / progress.total) * 100);
-      progressFill.style.width = pct + '%';
-      loadingStatus.textContent = `Loading model... ${pct}%`;
-    }
-  },
-  (err) => {
-    console.error(err);
-    loadingStatus.textContent = 'Error loading model';
-  }
-);
-
-// ── Keyboard input ─────────────────────────────────────────
-const keys = {};
-window.addEventListener('keydown', e => { keys[e.code] = true; });
-window.addEventListener('keyup', e => {
-  keys[e.code] = false;
-  if (e.code === 'KeyC') {
-    cameraMode = (cameraMode + 1) % 3;
-  }
-});
-
-// ── Mobile joystick ────────────────────────────────────────
-const mobileInput = { accel: 0, steer: 0, brake: false };
-
-function setupJoystick(zoneId, knobId, isLeft) {
-  const zone = document.getElementById(zoneId);
-  const knob = document.getElementById(knobId);
-  let active = false, startX = 0, startY = 0;
-  const radius = 38;
-
-  zone.addEventListener('touchstart', e => {
-    active = true;
-    const t = e.touches[0];
-    const rect = zone.getBoundingClientRect();
-    startX = rect.left + rect.width / 2;
-    startY = rect.top + rect.height / 2;
-    e.preventDefault();
-  }, { passive: false });
-
-  zone.addEventListener('touchmove', e => {
-    if (!active) return;
-    const t = e.touches[0];
-    let dx = t.clientX - startX;
-    let dy = t.clientY - startY;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    if (dist > radius) { dx = dx / dist * radius; dy = dy / dist * radius; }
-
-    knob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
-
-    const nx = dx / radius;
-    const ny = dy / radius;
-
-    if (isLeft) {
-      mobileInput.accel = Math.max(0, -ny);
-    } else {
-      mobileInput.steer = nx;
-    }
-    e.preventDefault();
-  }, { passive: false });
-
-  const end = () => {
-    active = false;
-    knob.style.transform = 'translate(-50%, -50%)';
-    if (isLeft) mobileInput.accel = 0;
-    else mobileInput.steer = 0;
-  };
-  zone.addEventListener('touchend', end);
-  zone.addEventListener('touchcancel', end);
+function iqTest() {
+  const iq = Math.floor(Math.random() * 200);
+  document.getElementById("iqResult").innerText = "あなたのIQは…" + iq + "です！（適当）";
 }
 
-setupJoystick('joy-left', 'knob-left', true);
-setupJoystick('joy-right', 'knob-right', false);
-
-const brakeBtn = document.getElementById('brake-btn');
-brakeBtn.addEventListener('touchstart', e => { mobileInput.brake = true; e.preventDefault(); }, { passive: false });
-brakeBtn.addEventListener('touchend', () => { mobileInput.brake = false; });
-
-document.getElementById('camera-btn').addEventListener('click', () => {
-  cameraMode = (cameraMode + 1) % 3;
-});
-
-// ── Environment map (simple) ───────────────────────────────
-const pmremGen = new THREE.PMREMGenerator(renderer);
-const envTexture = pmremGen.fromScene(new THREE.RoomEnvironment()).texture;
-scene.environment = envTexture;
-
-// ── Update loop ────────────────────────────────────────────
-const clock = new THREE.Clock();
-let cameraTarget = new THREE.Vector3();
-let cameraYaw = 0;
-
-function updatePhysics(dt) {
-  const accelInput = (keys['KeyW'] || keys['ArrowUp']) ? 1 : (mobileInput.accel > 0 ? mobileInput.accel : 0);
-  const brakeInput = (keys['KeyS'] || keys['ArrowDown'] || mobileInput.brake) ? 1 : 0;
-  const steerLeft = (keys['KeyA'] || keys['ArrowLeft']);
-  const steerRight = (keys['KeyD'] || keys['ArrowRight']);
-  const handbrakeInput = keys['Space'];
-
-  // Steering
-  const steerTarget = mobileInput.steer !== 0
-    ? mobileInput.steer * PHYSICS.steerMax
-    : (steerRight ? PHYSICS.steerMax : steerLeft ? -PHYSICS.steerMax : 0);
-
-  const speedFactor = 1 - Math.min(Math.abs(car.speed) / PHYSICS.maxSpeed, 0.7);
-  if (Math.abs(steerTarget) > Math.abs(car.steer)) {
-    car.steer += (steerTarget - car.steer) * PHYSICS.steerSpeed;
-  } else {
-    car.steer += (steerTarget - car.steer) * PHYSICS.steerReturn;
-  }
-  car.steer = Math.max(-PHYSICS.steerMax, Math.min(PHYSICS.steerMax, car.steer));
-
-  // Gear
-  const spd = Math.abs(car.speed);
-  for (let g = 1; g <= 6; g++) {
-    if (spd < gearSpeeds[g]) { car.gear = g; break; }
-  }
-  if (spd >= gearSpeeds[6]) car.gear = 6;
-
-  // Engine force
-  const gearFactor = 1 / PHYSICS.gearRatios[car.gear];
-  const engineMax = PHYSICS.acceleration * (1 + gearFactor * 0.5);
-
-  if (accelInput > 0 && car.speed >= 0) {
-    car.speed += engineMax * accelInput * dt;
-  } else if (brakeInput > 0) {
-    if (car.speed > 0.5) car.speed -= PHYSICS.brakeForce * dt;
-    else if (car.speed > -20) car.speed -= 8 * dt; // reverse
-  }
-
-  if (handbrakeInput) {
-    car.speed *= (1 - PHYSICS.handbrakeForce * dt * 0.1);
-  }
-
-  // Drag
-  car.speed *= Math.pow(PHYSICS.drag, dt * 60);
-  car.speed = Math.max(-8, Math.min(PHYSICS.maxSpeed, car.speed));
-
-  // Heading
-  if (Math.abs(car.speed) > 0.3) {
-    const turnRate = (car.steer / PHYSICS.wheelbase) * car.speed;
-    car.heading += turnRate * dt;
-  }
-
-  // Position
-  car.position.x += Math.sin(car.heading) * car.speed * dt;
-  car.position.z += Math.cos(car.heading) * car.speed * dt;
-
-  // RPM simulation
-  const targetRpm = 800 + (Math.abs(car.speed) / gearSpeeds[car.gear]) * 7000 + accelInput * 1500;
-  car.rpm += (targetRpm - car.rpm) * dt * 3;
-  car.rpm = Math.max(800, Math.min(8500, car.rpm));
-
-  // Wheel rotation
-  car.wheelAngle += car.speed * dt * (1 / 0.35); // wheel radius ~35cm
+function addMsg() {
+  const msg = document.getElementById("msg").value;
+  if(msg === "") return;
+  const li = document.createElement("li");
+  li.innerText = msg + "（ゆうた公認）";
+  document.getElementById("chat").appendChild(li);
+  document.getElementById("msg").value = "";
 }
-
-function updateCarMesh() {
-  if (!car.mesh) return;
-  car.mesh.position.copy(car.position);
-  car.mesh.rotation.y = car.heading + Math.PI;
-}
-
-function updateCamera(dt) {
-  if (!car.loaded) return;
-  const pos = car.position;
-
-  if (cameraMode === 0) {
-    // Chase camera
-    const behindDist = 10;
-    const heightOffset = 3.5;
-    const targetX = pos.x - Math.sin(car.heading) * behindDist;
-    const targetZ = pos.z - Math.cos(car.heading) * behindDist;
-    const targetY = pos.y + heightOffset;
-
-    camera.position.x += (targetX - camera.position.x) * 5 * dt;
-    camera.position.y += (targetY - camera.position.y) * 5 * dt;
-    camera.position.z += (targetZ - camera.position.z) * 5 * dt;
-
-    cameraTarget.x += (pos.x - cameraTarget.x) * 8 * dt;
-    cameraTarget.y += (pos.y + 1 - cameraTarget.y) * 8 * dt;
-    cameraTarget.z += (pos.z - cameraTarget.z) * 8 * dt;
-    camera.lookAt(cameraTarget);
-
-  } else if (cameraMode === 1) {
-    // Hood cam
-    const hoodX = pos.x + Math.sin(car.heading) * 1.8;
-    const hoodZ = pos.z + Math.cos(car.heading) * 1.8;
-    camera.position.set(hoodX, pos.y + 1.1, hoodZ);
-    const lookX = pos.x + Math.sin(car.heading) * 20;
-    const lookZ = pos.z + Math.cos(car.heading) * 20;
-    camera.lookAt(lookX, pos.y + 0.8, lookZ);
-
-  } else {
-    // Orbit
-    cameraYaw += 0.3 * dt;
-    camera.position.set(
-      pos.x + Math.cos(cameraYaw) * 15,
-      pos.y + 6,
-      pos.z + Math.sin(cameraYaw) * 15
-    );
-    camera.lookAt(pos.x, pos.y + 1, pos.z);
-  }
-}
-
-function updateHUD() {
-  const kmh = Math.round(Math.abs(car.speed) * 3.6);
-  document.getElementById('speed-value').textContent = kmh;
-  const gear = car.speed < -0.5 ? 'R' : car.speed < 0.5 ? 'N' : car.gear.toString();
-  document.getElementById('gear-value').textContent = gear;
-  const rpmPct = ((car.rpm - 800) / 7700) * 100;
-  document.getElementById('rpm-fill').style.width = rpmPct + '%';
-}
-
-// ── Rain effect ────────────────────────────────────────────
-const rainGeo = new THREE.BufferGeometry();
-const rainCount = 3000;
-const rainPos = new Float32Array(rainCount * 3);
-for (let i = 0; i < rainCount; i++) {
-  rainPos[i * 3] = (Math.random() - 0.5) * 100;
-  rainPos[i * 3 + 1] = Math.random() * 60;
-  rainPos[i * 3 + 2] = (Math.random() - 0.5) * 100;
-}
-rainGeo.setAttribute('position', new THREE.BufferAttribute(rainPos, 3));
-const rainMat = new THREE.PointsMaterial({
-  color: 0x8888cc, size: 0.08, transparent: true, opacity: 0.4
-});
-const rain = new THREE.Points(rainGeo, rainMat);
-scene.add(rain);
-
-function updateRain(dt) {
-  const pos = rainGeo.attributes.position.array;
-  const carX = car.position.x, carZ = car.position.z;
-  for (let i = 0; i < rainCount; i++) {
-    pos[i * 3 + 1] -= 25 * dt;
-    if (pos[i * 3 + 1] < 0) {
-      pos[i * 3] = carX + (Math.random() - 0.5) * 100;
-      pos[i * 3 + 1] = 60;
-      pos[i * 3 + 2] = carZ + (Math.random() - 0.5) * 100;
-    }
-  }
-  rainGeo.attributes.position.needsUpdate = true;
-}
-
-// ── Taillights glow ────────────────────────────────────────
-const tailLight1 = new THREE.PointLight(0xff2200, 0, 8);
-const tailLight2 = new THREE.PointLight(0xff2200, 0, 8);
-scene.add(tailLight1, tailLight2);
-
-function updateLights() {
-  if (!car.mesh) return;
-  const p = car.position;
-  const back = 2.2;
-  const bx = p.x - Math.sin(car.heading) * back;
-  const bz = p.z - Math.cos(car.heading) * back;
-  tailLight1.position.set(bx + Math.cos(car.heading) * 0.7, p.y + 0.6, bz - Math.sin(car.heading) * 0.7);
-  tailLight2.position.set(bx - Math.cos(car.heading) * 0.7, p.y + 0.6, bz + Math.sin(car.heading) * 0.7);
-  const brakeBrightness = (keys['KeyS'] || keys['ArrowDown'] || mobileInput.brake) ? 3 : 0.8;
-  tailLight1.intensity = brakeBrightness;
-  tailLight2.intensity = brakeBrightness;
-}
-
-// ── Animate ───────────────────────────────────────────────
-function animate() {
-  requestAnimationFrame(animate);
-  const dt = Math.min(clock.getDelta(), 0.05);
-
-  updatePhysics(dt);
-  updateCarMesh();
-  updateCamera(dt);
-  updateHUD();
-  updateRain(dt);
-  updateLights();
-
-  renderer.render(scene, camera);
-}
-animate();
-
-// ── Resize ────────────────────────────────────────────────
-window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-});
 </script>
+
 </body>
 </html>
