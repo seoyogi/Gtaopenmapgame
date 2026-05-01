@@ -2,136 +2,75 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>ゆうたのひみつのサイト</title>
+<title>ゆうたのさいと</title>
 <style>
 body {
-  margin: 0;
-  font-family: "Comic Sans MS", sans-serif;
-  background: linear-gradient(45deg, pink, lightblue, yellow);
-  text-align: center;
-  overflow-x: hidden;
-}
-h1 {
-  font-size: 40px;
-  animation: rainbow 3s infinite;
-}
-@keyframes rainbow {
-  0% {color:red;}
-  25% {color:blue;}
-  50% {color:green;}
-  75% {color:orange;}
-  100% {color:red;}
-}
-button {
-  padding: 10px 20px;
-  font-size: 16px;
-  margin: 5px;
-  border-radius: 20px;
-  border: none;
-  background: hotpink;
+  background: linear-gradient(45deg, #ff00cc, #3333ff);
   color: white;
-  cursor: pointer;
+  font-family: "Comic Sans MS", cursive;
+  text-align: center;
+  margin: 0;
 }
-#loveMeter {
-  width: 200px;
-  height: 20px;
-  background: #ddd;
-  margin: 10px auto;
+
+h1 {
+  font-size: 60px;
+  margin-top: 30px;
+  animation: spin 3s infinite linear;
 }
-#loveBar {
-  height: 100%;
-  width: 0%;
-  background: red;
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
-.marquee {
+
+button {
+  padding: 15px;
   font-size: 20px;
-  color: purple;
-  animation: move 5s linear infinite;
+  margin: 20px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  background: yellow;
+  color: black;
 }
-@keyframes move {
-  0% {transform: translateX(100%);}
-  100% {transform: translateX(-100%);}
-}
-footer {
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  font-size: 12px;
+
+#msg {
+  font-size: 25px;
+  margin-top: 20px;
 }
 </style>
 </head>
+
 <body>
 
-<h1>💖ゆうたのひみつのサイト💖</h1>
+<h1>ゆうたのさいと</h1>
 
-<div class="marquee">好きな人いる人は押してね↓↓↓</div>
+<p>ようこそｗｗｗここは世界一どうでもいいサイトです😂</p>
 
-<button onclick="alert('好きな人いるでしょ？バレてるよ😏')">好きな人ボタン</button>
-<button onclick="randomConfession()">告白ボタン</button>
-<button onclick="playSound()">謎の音</button>
-<button onclick="changeBg()">背景ガチャ</button>
+<button onclick="roast()">押すなよ？絶対押すなよ？</button>
 
-<h2>💘モテ度メーター💘</h2>
-<div id="loveMeter"><div id="loveBar"></div></div>
-<button onclick="upLove()">モテ度アップ</button>
-
-<h2>🧠IQ診断（たぶん）</h2>
-<button onclick="iqTest()">測定する</button>
-<p id="iqResult"></p>
-
-<h2>💬ひとこと投稿</h2>
-<input id="msg" placeholder="なんか書いて">
-<button onclick="addMsg()">投稿</button>
-<ul id="chat"></ul>
-
-<footer>
-  チャッピー作（天才AI）
-</footer>
+<div id="msg"></div>
 
 <script>
-let love = 0;
-
-function upLove() {
-  love += Math.floor(Math.random() * 30);
-  if(love > 100) love = 100;
-  document.getElementById("loveBar").style.width = love + "%";
-}
-
-function randomConfession() {
+function roast() {
   const msgs = [
-    "好きです（急）",
-    "いややっぱ無理",
-    "嘘ですごめん",
-    "でもちょっと好きかも",
-    "いや普通に好きだわ"
+    "お前押したなｗｗｗ",
+    "ヒマ人確定😂",
+    "ここ押すやつIQ3くらいらしいぞ",
+    "まだ見てるの？草",
+    "Wi-Fi無駄遣いしてて草",
+    "このサイト見つけた時点で勝ち組ではないｗ",
+    "押すなって言ったよな？？？？"
   ];
-  alert(msgs[Math.floor(Math.random()*msgs.length)]);
-}
-
-function playSound() {
-  const audio = new Audio("https://www.soundjay.com/button/beep-07.wav");
-  audio.play();
-}
-
-function changeBg() {
-  const colors = ["pink", "lightblue", "yellow", "lime", "orange", "purple"];
-  document.body.style.background = colors[Math.floor(Math.random()*colors.length)];
-}
-
-function iqTest() {
-  const iq = Math.floor(Math.random() * 200);
-  document.getElementById("iqResult").innerText = "あなたのIQは…" + iq + "です！（適当）";
-}
-
-function addMsg() {
-  const msg = document.getElementById("msg").value;
-  if(msg === "") return;
-  const li = document.createElement("li");
-  li.innerText = msg + "（ゆうた公認）";
-  document.getElementById("chat").appendChild(li);
-  document.getElementById("msg").value = "";
+  
+  const random = msgs[Math.floor(Math.random() * msgs.length)];
+  document.getElementById("msg").innerText = random;
 }
 </script>
+
+<footer style="position:fixed; bottom:0; width:100%; font-size:12px;">
+  チャッピー作（天才AI）
+</footer>
 
 </body>
 </html>
